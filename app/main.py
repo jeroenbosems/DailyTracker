@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, timezone
 from pathlib import Path
+from urllib.parse import quote, unquote
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.exception_handlers import http_exception_handler
@@ -9,7 +10,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.auth import (
@@ -21,7 +22,19 @@ from app.auth import (
 )
 from app.config import SECURE_COOKIES, SESSION_MAX_AGE
 from app.database import get_db, init_db
-from app.models import Routine, Task, User
+from app.epics_logic import (
+    complete_step,
+    current_phase,
+    epic_progress,
+    next_step,
+    phase_progress,
+)
+from app.models import Epic, Phase, Routine, Step, Task, User
+from app.period_bonuses import (
+    ensure_default_period_bonuses,
+    period_bonus_snapshot,
+    record_completion,
+)
 from app.rewards import grant_reward
 from app.routines_logic import CADENCES, advance_due, streak_continues
 
@@ -78,6 +91,18 @@ def _set_session_cookie(response: Response, user_id: int) -> None:
     )
 
 
+def _flash_redirect(path: str, message: str) -> RedirectResponse:
+    sep = "&" if "?" in path else "?"
+    return RedirectResponse(f"{path}{sep}flash={quote(message)}", status_code=303)
+
+
+def _read_flash(request: Request) -> str | None:
+    raw = request.query_params.get("flash")
+    if not raw:
+        return None
+    return unquote(raw)
+
+
 def current_user(request: Request, db: Session) -> User | None:
     token = request.cookies.get(SESSION_COOKIE)
     if not token:
@@ -97,6 +122,23 @@ def require_user(request: Request, db: Session = Depends(get_db)) -> User:
 
 def user_count(db: Session) -> int:
     return len(db.scalars(select(User)).all())
+
+
+def _load_epic(db: Session, epic_id: int) -> Epic | None:
+    return db.scalar(
+        select(Epic)
+        .where(Epic.id == epic_id)
+        .options(joinedload(Epic.phases).joinedload(Phase.steps))
+    )
+
+
+def _active_epic(db: Session, user: User) -> Epic | None:
+    if not user.active_epic_id:
+        return None
+    epic = _load_epic(db, user.active_epic_id)
+    if not epic or epic.user_id != user.id:
+        return None
+    return epic
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -147,6 +189,7 @@ def setup_post(
     db.add(user)
     db.commit()
     db.refresh(user)
+    ensure_default_period_bonuses(db, user)
     response = RedirectResponse("/today", status_code=303)
     _set_session_cookie(response, user.id)
     return response
@@ -175,6 +218,7 @@ def login_post(
             {"request": request, "error": "Invalid username or password."},
             status_code=401,
         )
+    ensure_default_period_bonuses(db, user)
     response = RedirectResponse("/today", status_code=303)
     _set_session_cookie(response, user.id)
     return response
@@ -203,8 +247,18 @@ def _due_now(user: User, today: date) -> tuple[list[Task], list[Routine]]:
 @app.get("/today", response_class=HTMLResponse)
 def today_view(request: Request, db: Session = Depends(get_db), user: User = Depends(require_user)):
     today = date.today()
+    ensure_default_period_bonuses(db, user)
     due_tasks, due_routines = _due_now(user, today)
-    flash = request.query_params.get("flash")
+    active = _active_epic(db, user)
+    next_step_item = next_step(active) if active else None
+    phase = current_phase(active) if active else None
+    phase_done = phase_total = 0
+    phase_pct = overall_pct = 0.0
+    epic_done = epic_total = 0
+    if active and phase:
+        phase_done, phase_total, phase_pct = phase_progress(phase)
+    if active:
+        epic_done, epic_total, overall_pct = epic_progress(active)
     return templates.TemplateResponse(
         "today.html",
         {
@@ -219,8 +273,18 @@ def today_view(request: Request, db: Session = Depends(get_db), user: User = Dep
                 key=lambda t: (t.priority, t.due_date or date.max),
             ),
             "recent_rewards": sorted(user.reward_logs, key=lambda r: r.created_at, reverse=True)[:8],
-            "flash": flash,
+            "flash": _read_flash(request),
             "cadences": CADENCES,
+            "active_epic": active,
+            "next_step": next_step_item,
+            "current_phase": phase,
+            "phase_done": phase_done,
+            "phase_total": phase_total,
+            "phase_pct": phase_pct,
+            "epic_done": epic_done,
+            "epic_total": epic_total,
+            "overall_pct": overall_pct,
+            "period_bonuses": period_bonus_snapshot(db, user, today),
         },
     )
 
@@ -248,7 +312,7 @@ def create_task(
     )
     db.add(task)
     db.commit()
-    return RedirectResponse("/today?flash=Task+created", status_code=303)
+    return _flash_redirect("/today", "Task created")
 
 
 @app.post("/tasks/{task_id}/complete")
@@ -260,12 +324,22 @@ def complete_task(
     task = db.get(Task, task_id)
     if not task or task.user_id != user.id:
         raise HTTPException(status_code=404, detail="Task not found.")
+    flashes: list[str] = []
     if not task.completed:
         task.completed = True
         task.completed_at = datetime.now(timezone.utc)
         grant_reward(db, user, task.priority, f"Completed task: {task.title}")
+        flashes.append("Task completed")
+        flashes.extend(record_completion(db, user))
+        # Auto-complete linked steps
+        linked = db.scalars(
+            select(Step).where(Step.task_id == task.id, Step.completed.is_(False))
+        ).all()
+        for step in linked:
+            _ = step.phase.epic
+            flashes.append(complete_step(db, user, step))
         db.commit()
-    return RedirectResponse("/today?flash=Task+completed", status_code=303)
+    return _flash_redirect("/today", " · ".join(flashes) if flashes else "Already completed")
 
 
 @app.post("/routines")
@@ -295,7 +369,7 @@ def create_routine(
     )
     db.add(routine)
     db.commit()
-    return RedirectResponse("/today?flash=Routine+created", status_code=303)
+    return _flash_redirect("/today", "Routine created")
 
 
 @app.post("/routines/{routine_id}/complete")
@@ -311,22 +385,322 @@ def complete_routine(
     if streak_continues(routine.cadence, routine.last_completed_on, today):
         # Same period already done — ignore double-complete for streak bump
         if routine.last_completed_on and routine.last_completed_on == today and routine.cadence == "daily":
-            return RedirectResponse("/today?flash=Already+completed+today", status_code=303)
+            return _flash_redirect("/today", "Already completed today")
         if routine.last_completed_on and routine.cadence != "daily":
             from app.routines_logic import period_start
 
             if period_start(routine.cadence, routine.last_completed_on) == period_start(routine.cadence, today):
-                return RedirectResponse("/today?flash=Already+completed+this+period", status_code=303)
+                return _flash_redirect("/today", "Already completed this period")
         routine.streak += 1
     else:
+        # Soft streak: miss resets current streak only — never wipe best_streak
         routine.streak = 1
     routine.best_streak = max(routine.best_streak, routine.streak)
     routine.completion_count += 1
     routine.last_completed_on = today
     routine.next_due_on = advance_due(routine.cadence, today)
     grant_reward(db, user, routine.priority, f"Completed {routine.cadence} routine: {routine.title}")
+    flashes = ["Routine completed"]
+    flashes.extend(record_completion(db, user, today))
+    linked = db.scalars(
+        select(Step).where(Step.routine_id == routine.id, Step.completed.is_(False))
+    ).all()
+    for step in linked:
+        _ = step.phase.epic
+        flashes.append(complete_step(db, user, step))
     db.commit()
-    return RedirectResponse("/today?flash=Routine+completed", status_code=303)
+    return _flash_redirect("/today", " · ".join(flashes))
+
+
+# ---------------------------------------------------------------------------
+# Epics (v0.2) — hierarchy Epic → Phase → Step
+# ---------------------------------------------------------------------------
+
+
+@app.get("/epics", response_class=HTMLResponse)
+def epics_list(request: Request, db: Session = Depends(get_db), user: User = Depends(require_user)):
+    epics = db.scalars(
+        select(Epic)
+        .where(Epic.user_id == user.id)
+        .options(joinedload(Epic.phases).joinedload(Phase.steps))
+        .order_by(Epic.created_at.desc())
+    ).unique().all()
+    by_id = {e.id: e for e in epics}
+    rows = []
+    for epic in epics:
+        done, total, pct = epic_progress(epic)
+        parent = by_id.get(epic.parent_epic_id) if epic.parent_epic_id else None
+        rows.append(
+            {
+                "epic": epic,
+                "done": done,
+                "total": total,
+                "pct": pct,
+                "active": user.active_epic_id == epic.id,
+                "parent": parent,
+            }
+        )
+    parent_choices = [e for e in epics if not e.completed]
+    return templates.TemplateResponse(
+        "epics.html",
+        {
+            "request": request,
+            "user": user,
+            "rows": rows,
+            "parent_choices": parent_choices,
+            "flash": _read_flash(request),
+        },
+    )
+
+
+@app.post("/epics")
+def create_epic(
+    title: str = Form(...),
+    notes: str = Form(""),
+    identity_end: str = Form(""),
+    capability_end: str = Form(""),
+    preview_label: str = Form(""),
+    legendary: str = Form("on"),
+    parent_epic_id: str = Form(""),
+    phase_titles: list[str] = Form(...),
+    phase_steps: list[str] = Form(...),
+    phase_deliverables: list[str] = Form([]),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    title = title.strip()
+    if not title:
+        raise HTTPException(status_code=400, detail="Epic title is required.")
+
+    # Pair titles with steps; drop empty trailing slots
+    phases_data: list[tuple[str, list[str], str | None]] = []
+    for i, raw_title in enumerate(phase_titles):
+        pt = (raw_title or "").strip()
+        steps_raw = phase_steps[i] if i < len(phase_steps) else ""
+        step_lines = [ln.strip() for ln in steps_raw.splitlines() if ln.strip()]
+        deliverable = None
+        if i < len(phase_deliverables):
+            deliverable = (phase_deliverables[i] or "").strip() or None
+        if not pt and not step_lines:
+            continue
+        if not pt:
+            raise HTTPException(status_code=400, detail="Each Phase needs a title.")
+        if not step_lines:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Phase “{pt}” needs at least one Step (newline-separated).",
+            )
+        phases_data.append((pt, step_lines, deliverable))
+
+    if len(phases_data) < 2:
+        raise HTTPException(
+            status_code=400,
+            detail="An Epic needs at least 2 Phases, each with Steps.",
+        )
+
+    parent_id = None
+    raw_parent = (parent_epic_id or "").strip()
+    if raw_parent:
+        if not raw_parent.isdigit():
+            raise HTTPException(status_code=400, detail="Invalid parent Epic.")
+        parent_id = int(raw_parent)
+        parent = db.get(Epic, parent_id)
+        if not parent or parent.user_id != user.id:
+            raise HTTPException(status_code=400, detail="Parent Epic not found.")
+
+    epic = Epic(
+        user_id=user.id,
+        parent_epic_id=parent_id,
+        title=title,
+        notes=notes.strip() or None,
+        legendary=legendary == "on",
+        identity_end=identity_end.strip() or None,
+        capability_end=capability_end.strip() or None,
+        preview_label=preview_label.strip() or None,
+    )
+    db.add(epic)
+    db.flush()
+    for sort_i, (pt, step_lines, deliverable) in enumerate(phases_data):
+        phase = Phase(
+            epic_id=epic.id,
+            title=pt,
+            sort_order=sort_i,
+            deliverable=deliverable,
+        )
+        db.add(phase)
+        db.flush()
+        for step_i, step_title in enumerate(step_lines):
+            db.add(
+                Step(
+                    phase_id=phase.id,
+                    title=step_title,
+                    sort_order=step_i,
+                    parallel=True,
+                )
+            )
+    if not user.active_epic_id:
+        user.active_epic_id = epic.id
+    db.commit()
+    return _flash_redirect(f"/epics/{epic.id}", "Epic created")
+
+
+@app.get("/epics/{epic_id}", response_class=HTMLResponse)
+def epic_detail(
+    epic_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    epic = _load_epic(db, epic_id)
+    if not epic or epic.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Epic not found.")
+    phases_view = []
+    for phase in sorted(epic.phases, key=lambda p: p.sort_order):
+        done, total, pct = phase_progress(phase)
+        phases_view.append(
+            {
+                "phase": phase,
+                "done": done,
+                "total": total,
+                "pct": pct,
+                "steps": sorted(phase.steps, key=lambda s: (s.sort_order, s.id)),
+            }
+        )
+    edone, etotal, epct = epic_progress(epic)
+    open_tasks = sorted(
+        [t for t in user.tasks if not t.completed],
+        key=lambda t: (t.priority, t.title),
+    )
+    routines = sorted(user.routines, key=lambda r: (r.priority, r.title))
+    return templates.TemplateResponse(
+        "epic_detail.html",
+        {
+            "request": request,
+            "user": user,
+            "epic": epic,
+            "phases_view": phases_view,
+            "epic_done": edone,
+            "epic_total": etotal,
+            "overall_pct": epct,
+            "is_active": user.active_epic_id == epic.id,
+            "next_step": next_step(epic),
+            "parent": db.get(Epic, epic.parent_epic_id) if epic.parent_epic_id else None,
+            "parent_choices": [
+                e
+                for e in db.scalars(
+                    select(Epic).where(Epic.user_id == user.id, Epic.id != epic.id)
+                ).all()
+            ],
+            "open_tasks": open_tasks,
+            "routines": routines,
+            "flash": _read_flash(request),
+        },
+    )
+
+
+@app.post("/epics/{epic_id}/activate")
+def activate_epic(
+    epic_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    epic = db.get(Epic, epic_id)
+    if not epic or epic.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Epic not found.")
+    user.active_epic_id = epic.id
+    db.commit()
+    return _flash_redirect("/today", f"Active Epic: {epic.title}")
+
+
+@app.post("/epics/{epic_id}/parent")
+def set_epic_parent(
+    epic_id: int,
+    parent_epic_id: str = Form(""),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    epic = db.get(Epic, epic_id)
+    if not epic or epic.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Epic not found.")
+    raw = (parent_epic_id or "").strip()
+    if not raw:
+        epic.parent_epic_id = None
+        db.commit()
+        return _flash_redirect(f"/epics/{epic.id}", "Parent cleared")
+    if not raw.isdigit():
+        raise HTTPException(status_code=400, detail="Invalid parent Epic.")
+    parent_id = int(raw)
+    if parent_id == epic.id:
+        raise HTTPException(status_code=400, detail="An Epic cannot be its own parent.")
+    parent = db.get(Epic, parent_id)
+    if not parent or parent.user_id != user.id:
+        raise HTTPException(status_code=400, detail="Parent Epic not found.")
+    walk = parent
+    seen = {epic.id}
+    while walk is not None:
+        if walk.id in seen:
+            raise HTTPException(status_code=400, detail="That parent would create a cycle.")
+        seen.add(walk.id)
+        walk = db.get(Epic, walk.parent_epic_id) if walk.parent_epic_id else None
+    epic.parent_epic_id = parent_id
+    db.commit()
+    return _flash_redirect(f"/epics/{epic.id}", f"Parent set: {parent.title}")
+
+
+@app.post("/steps/{step_id}/complete")
+def complete_step_route(
+    step_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    step = db.get(Step, step_id)
+    if not step:
+        raise HTTPException(status_code=404, detail="Step not found.")
+    phase = step.phase
+    epic = phase.epic
+    if epic.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Step not found.")
+    msg = complete_step(db, user, step)
+    flashes = [msg]
+    if "Already" not in msg:
+        flashes.extend(record_completion(db, user))
+    db.commit()
+    return _flash_redirect(f"/epics/{epic.id}", " · ".join(flashes))
+
+
+@app.post("/steps/{step_id}/link")
+def link_step(
+    step_id: int,
+    task_id: str = Form(""),
+    routine_id: str = Form(""),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    step = db.get(Step, step_id)
+    if not step:
+        raise HTTPException(status_code=404, detail="Step not found.")
+    epic = step.phase.epic
+    if epic.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Step not found.")
+
+    tid = int(task_id) if task_id.strip().isdigit() else None
+    rid = int(routine_id) if routine_id.strip().isdigit() else None
+    if tid is not None:
+        task = db.get(Task, tid)
+        if not task or task.user_id != user.id:
+            raise HTTPException(status_code=400, detail="Invalid task.")
+        step.task_id = tid
+    else:
+        step.task_id = None
+    if rid is not None:
+        routine = db.get(Routine, rid)
+        if not routine or routine.user_id != user.id:
+            raise HTTPException(status_code=400, detail="Invalid routine.")
+        step.routine_id = rid
+    else:
+        step.routine_id = None
+    db.commit()
+    return _flash_redirect(f"/epics/{epic.id}", "Step linked")
 
 
 @app.get("/health")

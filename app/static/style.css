@@ -88,3 +88,53 @@ button.ghost { background: transparent; border: 1px solid #3a4f6a; }
 .auth-box { max-width: 420px; margin: 10vh auto; }
 .muted { color: var(--muted); }
 .stack { display: flex; flex-direction: column; gap: 0.35rem; }
+.nav { display: flex; gap: 0.65rem; align-items: center; }
+.nav a {
+  color: var(--muted); font-weight: 600; font-size: 0.92rem;
+  padding: 0.25rem 0.55rem; border-radius: 8px;
+}
+.nav a:hover { color: var(--text); text-decoration: none; background: #1c2838; }
+.nav a.active { color: var(--text); background: var(--panel-2); }
+.progress {
+  height: 8px; background: #121a26; border-radius: 999px; overflow: hidden;
+  border: 1px solid #2a3a52;
+}
+.progress .fill {
+  height: 100%; background: var(--good); border-radius: 999px; width: 0;
+  transition: width 0.2s ease;
+}
+.progress .fill.accent { background: var(--accent); }
+.progress-row {
+  display: grid; grid-template-columns: 4.5rem 1fr; gap: 0.5rem;
+  align-items: center; margin-top: 0.45rem;
+}
+.progress-label { color: var(--muted); font-size: 0.8rem; }
+.next-step {
+  display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;
+  margin-top: 0.85rem; padding: 0.75rem; border-radius: 10px;
+  background: #152032; border: 1px solid #2e4a6a;
+}
+.phase-block {
+  margin: 1rem 0; padding: 0.85rem 1rem; border: 1px solid #2a3a52;
+  border-radius: 10px; background: var(--panel-2);
+}
+.phase-block legend { padding: 0 0.35rem; color: var(--accent); font-weight: 600; }
+.check {
+  display: flex; align-items: center; gap: 0.5rem; margin: 0.75rem 0;
+  color: var(--text); font-size: 0.92rem;
+}
+.check input { width: auto; }
+.link-form {
+  display: grid; gap: 0.45rem; grid-template-columns: 1fr;
+  margin-top: 0.55rem;
+}
+@media (min-width: 640px) {
+  .link-form { grid-template-columns: 1fr 1fr auto; align-items: center; }
+}
+a.btn {
+  display: inline-block; cursor: pointer; background: var(--accent-2);
+  border: none; color: white; padding: 0.45rem 0.85rem; border-radius: 8px;
+  font-weight: 600; text-decoration: none;
+}
+a.btn.ghost { background: transparent; border: 1px solid #3a4f6a; color: var(--text); }
+a.btn.ghost:hover { text-decoration: none; border-color: var(--accent); }

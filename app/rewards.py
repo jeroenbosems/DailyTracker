@@ -17,12 +17,16 @@ def tier_for_priority(priority: int) -> str:
 def grant_reward(db: Session, user: User, priority: int, reason: str) -> RewardLog:
     tier_key = tier_for_priority(priority)
     tier = REWARD_TIERS[tier_key]
+    return grant_fixed(db, user, tier_key, tier["points"], reason)
+
+
+def grant_fixed(db: Session, user: User, tier_key: str, points: int, reason: str) -> RewardLog:
     log = RewardLog(
         user_id=user.id,
         tier=tier_key,
-        points=tier["points"],
+        points=points,
         reason=reason,
     )
-    user.total_points += tier["points"]
+    user.total_points += points
     db.add(log)
     return log

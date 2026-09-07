@@ -3,18 +3,22 @@
 {% block body %}
   <div class="topbar">
     <div class="brand">Daily Tracker</div>
-    <div style="display:flex;gap:0.75rem;align-items:center">
+    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+      <nav class="nav">
+        <a href="/today" class="active">Today</a>
+        <a href="/epics">Epics</a>
+      </nav>
       <span class="points">{{ user.total_points }} pts</span>
       <span class="muted">{{ user.username }}</span>
       <form method="post" action="/logout"><button class="ghost" type="submit">Sign out</button></form>
     </div>
   </div>
 
-  {% if flash %}<div class="flash">{{ flash | replace('+', ' ') }}</div>{% endif %}
+  {% if flash %}<div class="flash">{{ flash }}</div>{% endif %}
 
   <div class="card">
     <h2>Due now · {{ today.isoformat() }}</h2>
-    <p class="muted">Needed work first — priority + overdue/due today.</p>
+    <p class="muted">Needed work first — priority + overdue/due today. Gamification never outranks this list.</p>
     {% if not due_tasks and not due_routines %}
       <p class="empty">Nothing due right now. Nice — or add a high-priority task.</p>
     {% endif %}
@@ -41,6 +45,96 @@
   <div class="grid grid-2">
     <div class="stack">
       <div class="card">
+    <h2>Active Epic</h2>
+    {% if not active_epic %}
+      <p class="empty">No active Epic. <a href="/epics">Create or activate one</a> so Today always has a next Step. Other Epics can stay Parked — no punishment.</p>
+    {% else %}
+      <div class="item" style="flex-direction:column;align-items:stretch">
+        <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+          <div>
+            <h3>
+              {% if active_epic.legendary %}<span class="badge gold">Legendary</span>{% endif %}
+              <a href="/epics/{{ active_epic.id }}">{{ active_epic.title }}</a>
+            </h3>
+            <div class="meta">
+              {% if current_phase %}Current Phase: {{ current_phase.title }}{% else %}All Phases complete{% endif %}
+              {% if active_epic.preview_unlocked and active_epic.preview_label %}
+                · Preview: {{ active_epic.preview_label }}
+              {% endif %}
+            </div>
+          </div>
+          <div class="meta" style="text-align:right">
+            Phase {{ "%.0f"|format(phase_pct) }}% ({{ phase_done }}/{{ phase_total }})<br />
+            Overall {{ "%.0f"|format(overall_pct) }}% ({{ epic_done }}/{{ epic_total }})
+          </div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-label">Phase</div>
+          <div class="progress"><div class="fill" style="width: {{ phase_pct }}%"></div></div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-label">Overall</div>
+          <div class="progress"><div class="fill accent" style="width: {{ overall_pct }}%"></div></div>
+        </div>
+        {% if next_step %}
+          <div class="next-step">
+            <div>
+              <div class="meta">Next Step</div>
+              <h3><span class="prio p{{ next_step.priority }}">P{{ next_step.priority }}</span>{{ next_step.title }}</h3>
+            </div>
+            <form method="post" action="/steps/{{ next_step.id }}/complete">
+              <button class="primary" type="submit">Complete Step</button>
+            </form>
+          </div>
+        {% else %}
+          <p class="empty">This Epic is complete — activate another or celebrate.</p>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Period bonuses</h2>
+    <p class="muted">N-of-M thresholds. Miss a period = no Period bonus that period — progress and best streaks stay.</p>
+    <div class="grid grid-2">
+      {% for c in period_bonuses %}
+        <div class="item" style="flex-direction:column;align-items:stretch">
+          <div style="display:flex;justify-content:space-between">
+            <h3>{{ c.title }}</h3>
+            <span class="meta">{{ c.period }}</span>
+          </div>
+          <div class="meta">{{ c.completions }}/{{ c.need }} to earn · optional extras at {{ c.max }}</div>
+          {% set fill = (100 * c.completions / c.max) if c.max else 0 %}
+          <div class="progress"><div class="fill" style="width: {{ fill if fill < 100 else 100 }}%"></div></div>
+          <div class="meta">
+            {% if c.bonus_granted %}Period bonus earned (+{{ c.reward_points }}){% else %}Not yet{% endif %}
+            {% if c.glory_granted %} · Extra earned{% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="grid grid-2">
+      {% for c in period_bonuses %}
+        <div class="item" style="flex-direction:column;align-items:stretch">
+          <div style="display:flex;justify-content:space-between">
+            <h3>{{ c.title }}</h3>
+            <span class="meta">{{ c.period }}</span>
+          </div>
+          <div class="meta">{{ c.completions }}/{{ c.need }} to earn · optional extras at {{ c.max }}</div>
+          {% set fill = (100 * c.completions / c.max) if c.max else 0 %}
+          <div class="progress"><div class="fill" style="width: {{ fill if fill < 100 else 100 }}%"></div></div>
+          <div class="meta">
+            {% if c.bonus_granted %}Period bonus earned (+{{ c.reward_points }}){% else %}Not yet{% endif %}
+            {% if c.glory_granted %} · Extra earned{% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
         <h2>New task</h2>
         <form method="post" action="/tasks">
           <div class="row cols-3">

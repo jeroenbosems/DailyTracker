@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}{{ epic.title }} · Daily Tracker{% endblock %}
+{% block body %}
+  <div class="topbar">
+    <div class="brand">Daily Tracker</div>
+    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+      <nav class="nav">
+        <a href="/today">Today</a>
+        <a href="/epics" class="active">Epics</a>
+      </nav>
+      <span class="points">{{ user.total_points }} pts</span>
+      <span class="muted">{{ user.username }}</span>
+      <form method="post" action="/logout"><button class="ghost" type="submit">Sign out</button></form>
+    </div>
+  </div>
+
+  {% if flash %}<div class="flash">{{ flash }}</div>{% endif %}
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:flex-start">
+      <div>
+        <h2 style="margin:0 0 0.35rem">
+          {% if is_active %}<span class="badge gold">Active</span>{% elif not epic.completed %}<span class="badge silver">Parked</span>{% endif %}
+          {% if epic.legendary %}<span class="badge silver">Legendary</span>{% endif %}
+          {{ epic.title }}
+        </h2>
+        <p class="muted" style="margin:0">
+          Overall {{ "%.0f"|format(overall_pct) }}% · {{ epic_done }}/{{ epic_total }} steps
+          {% if epic.completed %} · completed{% endif %}
+        </p>
+        {% if epic.identity_end or epic.capability_end %}
+          <p class="meta" style="margin-top:0.5rem">
+            {% if epic.identity_end %}<strong>Identity:</strong> {{ epic.identity_end }}{% endif %}
+            {% if epic.capability_end %}{% if epic.identity_end %} · {% endif %}<strong>Capability:</strong> {{ epic.capability_end }}{% endif %}
+          </p>
+        {% endif %}
+        {% if epic.preview_label %}
+          <p class="meta">
+            Preview: {{ epic.preview_label }}
+            {% if epic.preview_unlocked %}(unlocked){% else %}(unlocks around 25%){% endif %}
+          </p>
+        {% endif %}
+        {% if epic.notes %}<p class="meta">{{ epic.notes }}</p>{% endif %}
+        {% if parent %}
+          <p class="meta">Parent Epic: <a href="/epics/{{ parent.id }}">{{ parent.title }}</a></p>
+        {% else %}
+          <p class="meta">No parent Epic (standalone)</p>
+        {% endif %}
+      </div>
+      <div style="display:flex;gap:0.5rem">
+        {% if not is_active and not epic.completed %}
+          <form method="post" action="/epics/{{ epic.id }}/activate"><button class="primary" type="submit">Activate</button></form>
+        {% endif %}
+        <a class="btn ghost" href="/epics">All Epics</a>
+      </div>
+    </div>
+    <div class="progress" style="margin-top:0.75rem"><div class="fill accent" style="width: {{ overall_pct }}%"></div></div>
+    {% if next_step %}
+      <div class="next-step" style="margin-top:0.85rem">
+        <div>
+          <div class="meta">Next Step</div>
+          <h3>{{ next_step.title }}</h3>
+        </div>
+        <form method="post" action="/steps/{{ next_step.id }}/complete">
+          <button class="primary" type="submit">Complete</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Parent Epic</h2>
+    <p class="muted">Optional umbrella meta-goal. Clearing parks the link without deleting either Epic.</p>
+    <form method="post" action="/epics/{{ epic.id }}/parent" class="row cols-2">
+      <div>
+        <label for="parent_epic_id">Parent</label>
+        <select id="parent_epic_id" name="parent_epic_id">
+          <option value="">— none —</option>
+          {% for p in parent_choices %}
+            <option value="{{ p.id }}" {% if epic.parent_epic_id == p.id %}selected{% endif %}>{{ p.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div style="align-self:end">
+        <button type="submit">Save parent</button>
+      </div>
+    </form>
+  </div>
+
+  {% for row in phases_view %}
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;gap:1rem">
+      <h2 style="margin:0">
+        Phase {{ loop.index }} · {{ row.phase.title }}
+        {% if row.phase.completed %}<span class="badge gold">Done</span>{% endif %}
+      </h2>
+      <span class="meta">{{ row.done }}/{{ row.total }} · {{ "%.0f"|format(row.pct) }}%</span>
+    </div>
+    {% if row.phase.deliverable %}
+      <p class="meta">Deliverable: {{ row.phase.deliverable }}</p>
+    {% endif %}
+    <div class="progress" style="margin:0.5rem 0 0.75rem"><div class="fill" style="width: {{ row.pct }}%"></div></div>
+
+    {% for step in row.steps %}
+      <div class="item" style="flex-direction:column;align-items:stretch">
+        <div style="display:flex;justify-content:space-between;gap:0.75rem;align-items:flex-start">
+          <div>
+            <h3>
+              {% if step.completed %}<span class="badge gold">✓</span>{% else %}<span class="prio p{{ step.priority }}">P{{ step.priority }}</span>{% endif %}
+              {{ step.title }}
+            </h3>
+            <div class="meta">
+              {% if step.task_id %}Linked task #{{ step.task_id }}{% endif %}
+              {% if step.routine_id %}{% if step.task_id %} · {% endif %}Linked routine #{{ step.routine_id }}{% endif %}
+              {% if not step.task_id and not step.routine_id %}Standalone step{% endif %}
+            </div>
+          </div>
+          {% if not step.completed %}
+            <form method="post" action="/steps/{{ step.id }}/complete"><button type="submit">Complete</button></form>
+          {% endif %}
+        </div>
+        {% if not step.completed %}
+          <form method="post" action="/steps/{{ step.id }}/link" class="link-form">
+            <select name="task_id">
+              <option value="">Link task…</option>
+              {% for t in open_tasks %}
+                <option value="{{ t.id }}" {% if step.task_id == t.id %}selected{% endif %}>{{ t.title }}</option>
+              {% endfor %}
+            </select>
+            <select name="routine_id">
+              <option value="">Link routine…</option>
+              {% for r in routines %}
+                <option value="{{ r.id }}" {% if step.routine_id == r.id %}selected{% endif %}>{{ r.title }}</option>
+              {% endfor %}
+            </select>
+            <button class="ghost" type="submit">Save link</button>
+          </form>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+{% endblock %}
