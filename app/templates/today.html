@@ -42,9 +42,7 @@
     {% endfor %}
   </div>
 
-  <div class="grid grid-2">
-    <div class="stack">
-      <div class="card">
+  <div class="card">
     <h2>Active Epic</h2>
     {% if not active_epic %}
       <p class="empty">No active Epic. <a href="/epics">Create or activate one</a> so Today always has a next Step. Other Epics can stay Parked — no punishment.</p>
@@ -116,25 +114,8 @@
   </div>
 
   <div class="grid grid-2">
-      {% for c in period_bonuses %}
-        <div class="item" style="flex-direction:column;align-items:stretch">
-          <div style="display:flex;justify-content:space-between">
-            <h3>{{ c.title }}</h3>
-            <span class="meta">{{ c.period }}</span>
-          </div>
-          <div class="meta">{{ c.completions }}/{{ c.need }} to earn · optional extras at {{ c.max }}</div>
-          {% set fill = (100 * c.completions / c.max) if c.max else 0 %}
-          <div class="progress"><div class="fill" style="width: {{ fill if fill < 100 else 100 }}%"></div></div>
-          <div class="meta">
-            {% if c.bonus_granted %}Period bonus earned (+{{ c.reward_points }}){% else %}Not yet{% endif %}
-            {% if c.glory_granted %} · Extra earned{% endif %}
-          </div>
-        </div>
-      {% endfor %}
-    </div>
-  </div>
-
-  <div class="card">
+    <div class="stack">
+      <div class="card">
         <h2>New task</h2>
         <form method="post" action="/tasks">
           <div class="row cols-3">
@@ -225,7 +206,7 @@
 
       <div class="card">
         <h2>Recent rewards</h2>
-        <p class="muted">Fixed tiers: Bronze 10 · Silver 25 · Gold 50 (by priority).</p>
+        <p class="muted">Fixed tiers: Bronze 10 · Silver 25 · Gold 50 (by priority). Phase +75 · Epic +150.</p>
         {% if not recent_rewards %}
           <p class="empty">Complete something to earn a standardized reward.</p>
         {% endif %}
