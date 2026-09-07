@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Rewards · Daily Tracker{% endblock %}
+{% block body %}
+  <div class="topbar">
+    <div class="brand">Daily Tracker</div>
+    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+      <nav class="nav">
+        <a href="/today">Today</a>
+        <a href="/epics">Epics</a>
+        <a href="/rewards" class="active">Rewards</a>
+        <a href="/import">Import</a>
+      </nav>
+      <span class="points">{{ user.total_points }} pts</span>
+      <span class="muted">{{ user.username }}</span>
+      <form method="post" action="/logout"><button class="ghost" type="submit">Sign out</button></form>
+    </div>
+  </div>
+
+  {% if flash %}<div class="flash">{{ flash }}</div>{% endif %}
+
+  <div class="card">
+    <h2>Reward history</h2>
+    <p class="muted">Read-only log of fixed standardized rewards (Bronze / Silver / Gold + Phase / Epic / Period bonuses). No DIY point economy.</p>
+    {% if not logs %}
+      <p class="empty">No rewards yet — complete Due now work or an Active Epic Step.</p>
+    {% endif %}
+    {% for rw in logs %}
+      <div class="item">
+        <div>
+          <h3><span class="badge {{ rw.tier }}">{{ rw.tier | capitalize }}</span> +{{ rw.points }}</h3>
+          <div class="meta">{{ rw.reason }}</div>
+        </div>
+        <div class="meta" style="white-space:nowrap">
+          {% if rw.created_at %}{{ rw.created_at.strftime("%Y-%m-%d %H:%M") }} UTC{% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endblock %}

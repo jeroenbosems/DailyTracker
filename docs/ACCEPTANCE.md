@@ -19,16 +19,25 @@ Tester owns execution. PO owns the bar. Map fails to REQUIREMENTS.md IDs.
 - [x] R2.* / R1.* — prior NFRs still hold
 - [x] Docs: REQUIREMENTS.md + PRODUCT.md + this file reflect v0.2 (MOTIVATION.md non-normative)
 
-## v0.3 (current gate)
+## v0.3 (shipped)
+
+- [x] R5.12 — Explicit Park clears Active; Parked never wipes progress; Today calm “Parked · N”
+- [x] R8.1–R8.4 — LLM ingest New/Update; destructive confirm; `/import`
+- [x] Docs + prior NFRs
+
+## v0.3.1 (current gate)
 
 Must pass before merge:
 
-1. **R5.12** — Explicit Park action clears Active when that Epic was Active; Parked never wipes progress/titles/completions; Today surfaces only Active Epic + calm “Parked · N” link to `/epics` (no guilt copy); Park button on list + detail when Active; Parked badge already on list/detail
-2. **R8.1–R8.4** — Stable `external_id` on Epic/Phase/Step; `app/ingest.py` validates against `docs/LLM_INGEST.md`; modes `new` | `update`; update refuses silent delete of completed Steps / progress reset; destructive removals need JSON `confirm_destructive: true` **and** UI checkbox; `/import` page with flash/errors (no raw stacks); Import in nav (Today/Epics); successful new with `status: active` (or first Epic) activates without punishing other Parked Epics
-3. **Docs** — this gate checklist; LLM_INGEST status implemented; REQUIREMENTS version tags (v0.2 shipped, v0.3 in progress); DECISIONS note if useful
-4. **R2.*** / **R1.*** — prior NFRs still hold (argon2/cookies unchanged)
+1. **Reward history** — `/rewards` lists `RewardLog` newest first (tier badge, points, reason, timestamp); read-only; nav link + link from Today “Recent rewards”; still no DIY economy (R3.4)
+2. **Watch / Nearly done (max 6)** — Today card **below** Due now + Active Epic, **above** Period bonuses (R7.1)
+   - Pinned Steps and open Tasks in `watch_items` (user_id, kind step|task, ref_id, created_at); unique (user, kind, ref); hard cap **6** with clear error when full
+   - Auto Nearly done fills remaining slots: incomplete Steps that are (a) last incomplete in Phase, or (b) Phase progress ≥ 80%; Active Epic first; dedupe vs pins; drop completed refs from display (clean pins on complete when easy)
+   - UI: pinned vs auto badge; unpin/pin on Epic detail Steps and Open tasks where cheap
+3. **Docs** — this gate checklist; brief PRODUCT/DECISIONS note
+4. **R2.*** / **R1.*** / **R7.1** — prior NFRs still hold
 
-Out of scope for this gate: Full vs Focused paths, reward history page, watch list.
+Out of scope for this gate: Full vs Focused Epic paths, life-mode filters, follow-on Epic.
 
 ## How to report
 

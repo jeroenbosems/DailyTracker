@@ -33,6 +33,9 @@ class User(Base):
     period_bonus_progress: Mapped[list[PeriodBonusProgress]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
+    watch_items: Mapped[list[WatchItem]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class Task(Base):
@@ -194,3 +197,20 @@ class PeriodBonusProgress(Base):
     glory_granted: Mapped[bool] = mapped_column(Boolean, default=False)
 
     user: Mapped[User] = relationship(back_populates="period_bonus_progress")
+
+
+class WatchItem(Base):
+    """Pinned Step or Task on Today Watch / Nearly done (max 6 per user)."""
+
+    __tablename__ = "watch_items"
+    __table_args__ = (
+        UniqueConstraint("user_id", "kind", "ref_id", name="uq_watch_user_kind_ref"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    kind: Mapped[str] = mapped_column(String(16), nullable=False)  # step | task
+    ref_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    user: Mapped[User] = relationship(back_populates="watch_items")
