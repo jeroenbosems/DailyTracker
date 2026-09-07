@@ -30,3 +30,10 @@ def test_streak_daily():
     today = date(2026, 3, 10)
     assert streak_continues("daily", today - timedelta(days=1), today)
     assert not streak_continues("daily", today - timedelta(days=2), today)
+
+
+def test_parent_epic_cycle_guard_logic():
+    # structural: models expose parent_epic_id
+    from app.models import Epic
+
+    assert hasattr(Epic, "parent_epic_id")

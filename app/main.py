@@ -425,9 +425,11 @@ def epics_list(request: Request, db: Session = Depends(get_db), user: User = Dep
         .options(joinedload(Epic.phases).joinedload(Phase.steps))
         .order_by(Epic.created_at.desc())
     ).unique().all()
+    by_id = {e.id: e for e in epics}
     rows = []
     for epic in epics:
         done, total, pct = epic_progress(epic)
+        parent = by_id.get(epic.parent_epic_id) if epic.parent_epic_id else None
         rows.append(
             {
                 "epic": epic,
@@ -435,14 +437,17 @@ def epics_list(request: Request, db: Session = Depends(get_db), user: User = Dep
                 "total": total,
                 "pct": pct,
                 "active": user.active_epic_id == epic.id,
+                "parent": parent,
             }
         )
+    parent_choices = [e for e in epics if not e.completed]
     return templates.TemplateResponse(
         "epics.html",
         {
             "request": request,
             "user": user,
             "rows": rows,
+            "parent_choices": parent_choices,
             "flash": _read_flash(request),
         },
     )
@@ -456,6 +461,7 @@ def create_epic(
     capability_end: str = Form(""),
     preview_label: str = Form(""),
     legendary: str = Form("on"),
+    parent_epic_id: str = Form(""),
     phase_titles: list[str] = Form(...),
     phase_steps: list[str] = Form(...),
     phase_deliverables: list[str] = Form([]),
@@ -492,8 +498,19 @@ def create_epic(
             detail="An Epic needs at least 2 Phases, each with Steps.",
         )
 
+    parent_id = None
+    raw_parent = (parent_epic_id or "").strip()
+    if raw_parent:
+        if not raw_parent.isdigit():
+            raise HTTPException(status_code=400, detail="Invalid parent Epic.")
+        parent_id = int(raw_parent)
+        parent = db.get(Epic, parent_id)
+        if not parent or parent.user_id != user.id:
+            raise HTTPException(status_code=400, detail="Parent Epic not found.")
+
     epic = Epic(
         user_id=user.id,
+        parent_epic_id=parent_id,
         title=title,
         notes=notes.strip() or None,
         legendary=legendary == "on",
@@ -567,6 +584,13 @@ def epic_detail(
             "overall_pct": epct,
             "is_active": user.active_epic_id == epic.id,
             "next_step": next_step(epic),
+            "parent": db.get(Epic, epic.parent_epic_id) if epic.parent_epic_id else None,
+            "parent_choices": [
+                e
+                for e in db.scalars(
+                    select(Epic).where(Epic.user_id == user.id, Epic.id != epic.id)
+                ).all()
+            ],
             "open_tasks": open_tasks,
             "routines": routines,
             "flash": _read_flash(request),
@@ -586,6 +610,41 @@ def activate_epic(
     user.active_epic_id = epic.id
     db.commit()
     return _flash_redirect("/today", f"Active Epic: {epic.title}")
+
+
+@app.post("/epics/{epic_id}/parent")
+def set_epic_parent(
+    epic_id: int,
+    parent_epic_id: str = Form(""),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    epic = db.get(Epic, epic_id)
+    if not epic or epic.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Epic not found.")
+    raw = (parent_epic_id or "").strip()
+    if not raw:
+        epic.parent_epic_id = None
+        db.commit()
+        return _flash_redirect(f"/epics/{epic.id}", "Parent cleared")
+    if not raw.isdigit():
+        raise HTTPException(status_code=400, detail="Invalid parent Epic.")
+    parent_id = int(raw)
+    if parent_id == epic.id:
+        raise HTTPException(status_code=400, detail="An Epic cannot be its own parent.")
+    parent = db.get(Epic, parent_id)
+    if not parent or parent.user_id != user.id:
+        raise HTTPException(status_code=400, detail="Parent Epic not found.")
+    walk = parent
+    seen = {epic.id}
+    while walk is not None:
+        if walk.id in seen:
+            raise HTTPException(status_code=400, detail="That parent would create a cycle.")
+        seen.add(walk.id)
+        walk = db.get(Epic, walk.parent_epic_id) if walk.parent_epic_id else None
+    epic.parent_epic_id = parent_id
+    db.commit()
+    return _flash_redirect(f"/epics/{epic.id}", f"Parent set: {parent.title}")
 
 
 @app.post("/steps/{step_id}/complete")

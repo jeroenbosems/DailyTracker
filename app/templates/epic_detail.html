@@ -41,6 +41,11 @@
           </p>
         {% endif %}
         {% if epic.notes %}<p class="meta">{{ epic.notes }}</p>{% endif %}
+        {% if parent %}
+          <p class="meta">Parent Epic: <a href="/epics/{{ parent.id }}">{{ parent.title }}</a></p>
+        {% else %}
+          <p class="meta">No parent Epic (standalone)</p>
+        {% endif %}
       </div>
       <div style="display:flex;gap:0.5rem">
         {% if not is_active and not epic.completed %}
@@ -61,6 +66,25 @@
         </form>
       </div>
     {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Parent Epic</h2>
+    <p class="muted">Optional umbrella meta-goal. Clearing parks the link without deleting either Epic.</p>
+    <form method="post" action="/epics/{{ epic.id }}/parent" class="row cols-2">
+      <div>
+        <label for="parent_epic_id">Parent</label>
+        <select id="parent_epic_id" name="parent_epic_id">
+          <option value="">— none —</option>
+          {% for p in parent_choices %}
+            <option value="{{ p.id }}" {% if epic.parent_epic_id == p.id %}selected{% endif %}>{{ p.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div style="align-self:end">
+        <button type="submit">Save parent</button>
+      </div>
+    </form>
   </div>
 
   {% for row in phases_view %}

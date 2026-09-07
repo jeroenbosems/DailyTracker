@@ -31,7 +31,10 @@
             <a href="/epics/{{ row.epic.id }}">{{ row.epic.title }}</a>
             {% if row.epic.completed %}<span class="meta"> · done</span>{% endif %}
           </h3>
-          <div class="meta">{{ row.done }}/{{ row.total }} steps · {{ "%.0f"|format(row.pct) }}%</div>
+          <div class="meta">
+            {{ row.done }}/{{ row.total }} steps · {{ "%.0f"|format(row.pct) }}%
+            {% if row.parent %} · under <a href="/epics/{{ row.parent.id }}">{{ row.parent.title }}</a>{% endif %}
+          </div>
           <div class="progress" style="margin-top:0.4rem"><div class="fill accent" style="width: {{ row.pct }}%"></div></div>
         </div>
         {% if not row.active and not row.epic.completed %}
@@ -63,6 +66,14 @@
 
       <label for="preview_label">Preview (taste of the end, unlocks mid-journey)</label>
       <input id="preview_label" name="preview_label" placeholder="e.g. Trial week living as if moved" />
+
+      <label for="parent_epic_id">Parent Epic (optional meta-goal)</label>
+      <select id="parent_epic_id" name="parent_epic_id">
+        <option value="">— none —</option>
+        {% for p in parent_choices %}
+          <option value="{{ p.id }}">{{ p.title }}</option>
+        {% endfor %}
+      </select>
 
       <label for="notes">Notes</label>
       <textarea id="notes" name="notes"></textarea>
