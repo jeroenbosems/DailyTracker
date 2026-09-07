@@ -42,6 +42,7 @@ from app.epics_logic import (
     current_phase,
     epic_progress,
     next_step,
+    next_step_for_mode,
     normalize_path,
     phase_progress,
     switch_epic_path,
@@ -327,17 +328,22 @@ def today_view(request: Request, db: Session = Depends(get_db), user: User = Dep
     due_tasks = [t for t in due_tasks if matches_single_mode(t.life_mode, mode_filter)]
     due_routines = [r for r in due_routines if matches_single_mode(r.life_mode, mode_filter)]
     active = _active_epic(db, user)
-    show_active = bool(active) and matches_epic_modes(getattr(active, "life_modes", None), mode_filter)
+    active_hidden_by_filter = bool(active) and not matches_epic_modes(
+        getattr(active, "life_modes", None), mode_filter
+    )
+    show_active = bool(active) and not active_hidden_by_filter
     next_step_item = None
     phase = None
     phase_done = phase_total = 0
     phase_pct = overall_pct = 0.0
     epic_done = epic_total = 0
+    epic_truly_complete = False
+    next_step_filtered_out = False
     if show_active and active:
-        next_step_item = next_step(active)
-        if next_step_item and not matches_single_mode(next_step_item.life_mode, mode_filter):
-            # Keep Active Epic card when epic matches; hide next Step if tagged differently
-            next_step_item = None
+        epic_truly_complete = bool(active.completed) or next_step(active) is None
+        next_step_item = next_step_for_mode(active, mode_filter, matches_single_mode)
+        if not next_step_item and not epic_truly_complete and mode_filter:
+            next_step_filtered_out = True
         phase = current_phase(active)
         if phase:
             phase_done, phase_total, phase_pct = phase_progress(phase)
@@ -385,6 +391,10 @@ def today_view(request: Request, db: Session = Depends(get_db), user: User = Dep
             "flash": _read_flash(request),
             "cadences": CADENCES,
             "active_epic": active if show_active else None,
+            "active_hidden_by_filter": active_hidden_by_filter,
+            "has_active_epic": bool(active),
+            "epic_truly_complete": epic_truly_complete,
+            "next_step_filtered_out": next_step_filtered_out,
             "next_step": next_step_item,
             "current_phase": phase,
             "phase_done": phase_done,
