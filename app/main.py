@@ -192,11 +192,11 @@ def _due_now(user: User, today: date) -> tuple[list[Task], list[Routine]]:
     due_tasks = [
         t
         for t in open_tasks
-        if t.due_date is None or t.due_date <= today
+        if t.due_date is not None and t.due_date <= today
     ]
-    due_tasks.sort(key=lambda t: (t.priority, t.due_date or today, t.id))
+    due_tasks.sort(key=lambda t: (t.priority, t.due_date or today, t.created_at, t.id))
     due_routines = [r for r in user.routines if r.next_due_on <= today]
-    due_routines.sort(key=lambda r: (r.priority, r.next_due_on, r.id))
+    due_routines.sort(key=lambda r: (r.priority, r.next_due_on, r.created_at, r.id))
     return due_tasks, due_routines
 
 
