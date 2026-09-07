@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Error {{ status_code }} · Daily Tracker{% endblock %}
+{% block body %}
+  <div class="auth-box card">
+    <h1>{{ status_code }}</h1>
+    <p class="error">{{ message }}</p>
+    <p><a href="/">Back home</a></p>
+  </div>
+{% endblock %}

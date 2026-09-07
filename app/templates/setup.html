@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Setup · Daily Tracker{% endblock %}
+{% block body %}
+  <div class="auth-box card">
+    <h1>Create your local account</h1>
+    <p class="muted">Solo first-run setup. Data stays in this container volume.</p>
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    <form method="post" action="/setup">
+      <label for="username">Username</label>
+      <input id="username" name="username" required minlength="2" autocomplete="username" />
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" required minlength="8" autocomplete="new-password" />
+      <label for="password_confirm">Confirm password</label>
+      <input id="password_confirm" name="password_confirm" type="password" required minlength="8" autocomplete="new-password" />
+      <p style="margin-top:1rem"><button class="primary" type="submit">Create account</button></p>
+    </form>
+  </div>
+{% endblock %}
