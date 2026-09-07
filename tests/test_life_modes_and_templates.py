@@ -313,3 +313,18 @@ def test_http_template_start_and_today_filter(tmp_path, monkeypatch):
         assert "Ship a useful side IT project" in after
     finally:
         main.app.dependency_overrides.clear()
+
+
+def test_next_step_for_mode_skips_mismatched_tags():
+    from app.epics_logic import next_step_for_mode
+    from app.life_modes import matches_single_mode
+    from app.models import Epic, Phase, Step
+
+    epic = Epic(id=1, user_id=1, title="E", path="full")
+    phase = Phase(id=1, epic_id=1, title="P", sort_order=0, parked=False)
+    s1 = Step(id=1, phase_id=1, title="Work only", sort_order=0, parallel=True, completed=False, life_mode="work")
+    s2 = Step(id=2, phase_id=1, title="Home or open", sort_order=1, parallel=True, completed=False, life_mode="home")
+    phase.steps = [s1, s2]
+    epic.phases = [phase]
+    assert next_step_for_mode(epic, "home", matches_single_mode).id == 2
+    assert next_step_for_mode(epic, "work", matches_single_mode).id == 1

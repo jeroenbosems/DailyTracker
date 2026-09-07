@@ -62,6 +62,18 @@ def next_step(epic: Epic) -> Step | None:
     return None
 
 
+
+def next_step_for_mode(epic: Epic, mode_filter: str | None, matches_fn) -> Step | None:
+    """Next incomplete Step in Active Epic that passes life-mode filter (tagged match or untagged)."""
+    for phase in sorted(active_phases(epic), key=lambda p: p.sort_order):
+        for step in sorted(phase.steps, key=lambda s: (s.completed, s.sort_order, s.id)):
+            if step.completed:
+                continue
+            if matches_fn(getattr(step, "life_mode", None), mode_filter):
+                return step
+    return None
+
+
 def _phase_has_completed_progress(phase: Phase) -> bool:
     if phase.completed:
         return True
