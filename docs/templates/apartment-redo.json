@@ -1,0 +1,112 @@
+{
+  "mode": "new",
+  "confirm_destructive": false,
+  "epic": {
+    "id": "tpl_apartment_redo",
+    "title": "Redo the apartment into a calm base",
+    "identity": "Someone who finished a calm, usable home base",
+    "capability": "Live and work in a finished apartment without renovation hanging over every weekend",
+    "preview": "One corner of the living room fully done and usable",
+    "status": "active",
+    "path": "full",
+    "life_modes": ["home", "health"],
+    "phases": [
+      {
+        "id": "phase_declutter",
+        "title": "Plan and declutter",
+        "order": 1,
+        "deliverable": "Room-by-room plan plus donate/sell bags staged by the door",
+        "steps": [
+          {
+            "id": "step_photos",
+            "title": "Photograph each room as a before baseline",
+            "order": 1,
+            "parallel": true,
+            "priority": 2,
+            "life_mode": "home"
+          },
+          {
+            "id": "step_donate",
+            "title": "Fill and stage the first donate/sell bag",
+            "order": 2,
+            "parallel": true,
+            "priority": 1,
+            "life_mode": "home"
+          },
+          {
+            "id": "step_plan",
+            "title": "Write a room order and weekend capacity plan",
+            "order": 3,
+            "parallel": true,
+            "priority": 1,
+            "life_mode": "home"
+          }
+        ]
+      },
+      {
+        "id": "phase_refresh",
+        "title": "Refresh the high-impact surfaces",
+        "order": 2,
+        "deliverable": "Living room walls/flooring touch-up complete and furniture re-placed",
+        "steps": [
+          {
+            "id": "step_supplies",
+            "title": "Buy paint/supplies matched to the plan",
+            "order": 1,
+            "parallel": true,
+            "priority": 1,
+            "life_mode": "home"
+          },
+          {
+            "id": "step_paint",
+            "title": "Finish the living room primary wall or floor refresh",
+            "order": 2,
+            "parallel": true,
+            "priority": 1,
+            "life_mode": "home"
+          },
+          {
+            "id": "step_reset",
+            "title": "Reset furniture so one corner is fully usable",
+            "order": 3,
+            "parallel": true,
+            "priority": 2,
+            "life_mode": "health"
+          }
+        ]
+      },
+      {
+        "id": "phase_habit",
+        "title": "Lock in maintainable systems",
+        "order": 3,
+        "deliverable": "Simple weekly tidy routine and a finished photo set",
+        "steps": [
+          {
+            "id": "step_storage",
+            "title": "Assign a home for keys, mail, and chargers",
+            "order": 1,
+            "parallel": true,
+            "priority": 2,
+            "life_mode": "home"
+          },
+          {
+            "id": "step_routine",
+            "title": "Define a 20-minute weekly tidy checklist",
+            "order": 2,
+            "parallel": true,
+            "priority": 2,
+            "life_mode": "health"
+          },
+          {
+            "id": "step_after",
+            "title": "Take after photos and mark the Epic done when the corner feels finished",
+            "order": 3,
+            "parallel": true,
+            "priority": 3,
+            "life_mode": "home"
+          }
+        ]
+      }
+    ]
+  }
+}

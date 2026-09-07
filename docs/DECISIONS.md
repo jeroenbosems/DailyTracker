@@ -2,6 +2,12 @@
 
 Append-only. Newest first. Chat opinions do not count until recorded here and reflected in REQUIREMENTS.md / PRODUCT.md.
 
+## 2026-09-07 — v0.4 Life modes + starter templates
+
+**Decision:** Optional life-mode tags (`work|health|home|learning`): single nullable on Task/Routine/Step; Epic multi as JSON `life_modes` default `[]`. Today filter chips (All + modes) hide/show within fixed section order; under a mode show tagged OR untagged. Starter templates under `docs/templates/` are `mode:new` ingest only — Start from template never mutates existing Epics. Reward shop stays out.
+**Why:** Cleared v0.4 scope; filter without board theater; capture cheaper via templates.
+**Affects:** R4.7, R5.14, R8.5; ACCEPTANCE v0.4; PRODUCT roadmap
+
 ## 2026-09-07 — v0.3.2 Full vs Focused Epics
 
 **Decision:** Epics have path full|focused. Focused parks extra Phases by default; explicit confirm only removes incomplete extras. Full unparks and may add Phases/Steps without wiping completed work. Today/next Step/Nearly done skip parked Phases.

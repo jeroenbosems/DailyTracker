@@ -1,0 +1,112 @@
+{
+  "mode": "new",
+  "confirm_destructive": false,
+  "epic": {
+    "id": "tpl_move_house",
+    "title": "Move house without chaos",
+    "identity": "Someone who relocates with a calm, usable first week",
+    "capability": "Plan, pack, move, and settle essentials without losing important documents or sleep",
+    "preview": "Keys in hand and a sleepable bedroom ready on day one",
+    "status": "active",
+    "path": "full",
+    "life_modes": ["home"],
+    "phases": [
+      {
+        "id": "phase_plan",
+        "title": "Plan the move",
+        "order": 1,
+        "deliverable": "Dated checklist + bookings for movers/van and change-of-address list",
+        "steps": [
+          {
+            "id": "step_inventory",
+            "title": "Walk each room and list keep / donate / discard piles",
+            "order": 1,
+            "parallel": true,
+            "priority": 1,
+            "life_mode": "home"
+          },
+          {
+            "id": "step_book",
+            "title": "Book movers or van for a firm date",
+            "order": 2,
+            "parallel": true,
+            "priority": 1,
+            "life_mode": "home"
+          },
+          {
+            "id": "step_address",
+            "title": "Draft change-of-address and utility transfer list",
+            "order": 3,
+            "parallel": true,
+            "priority": 2,
+            "life_mode": "home"
+          }
+        ]
+      },
+      {
+        "id": "phase_pack",
+        "title": "Pack with labels",
+        "order": 2,
+        "deliverable": "Labeled boxes by room plus an essentials bag for day one",
+        "steps": [
+          {
+            "id": "step_kitchen",
+            "title": "Pack kitchen non-essentials and label boxes",
+            "order": 1,
+            "parallel": true,
+            "priority": 2,
+            "life_mode": "home"
+          },
+          {
+            "id": "step_docs",
+            "title": "Consolidate IDs, contracts, and keys in one folder",
+            "order": 2,
+            "parallel": true,
+            "priority": 1,
+            "life_mode": "home"
+          },
+          {
+            "id": "step_essentials",
+            "title": "Pack the day-one essentials bag (bedding, toiletries, chargers)",
+            "order": 3,
+            "parallel": true,
+            "priority": 1,
+            "life_mode": "home"
+          }
+        ]
+      },
+      {
+        "id": "phase_settle",
+        "title": "Settle the essentials",
+        "order": 3,
+        "deliverable": "Bedroom sleepable, fridge working, and top three utilities confirmed",
+        "steps": [
+          {
+            "id": "step_bedroom",
+            "title": "Set up bed and clear a path in the bedroom",
+            "order": 1,
+            "parallel": true,
+            "priority": 1,
+            "life_mode": "home"
+          },
+          {
+            "id": "step_utilities",
+            "title": "Confirm power, water, and internet are live or scheduled",
+            "order": 2,
+            "parallel": true,
+            "priority": 1,
+            "life_mode": "home"
+          },
+          {
+            "id": "step_firstweek",
+            "title": "Place a first-week grocery and cleaning run list on the fridge",
+            "order": 3,
+            "parallel": true,
+            "priority": 3,
+            "life_mode": "home"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -144,3 +144,32 @@ a.btn.ghost:hover { text-decoration: none; border-color: var(--accent); }
 .parked-summary a { color: var(--muted); font-weight: 600; }
 .parked-summary a:hover { color: var(--text); }
 
+
+.mode-chips {
+  display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0 0 0.85rem;
+}
+.chip {
+  display: inline-block; padding: 0.35rem 0.75rem; border-radius: 999px;
+  border: 1px solid #3a4f6a; color: var(--muted); text-decoration: none;
+  font-size: 0.88rem; font-weight: 600; background: var(--panel);
+}
+.chip:hover { color: var(--text); border-color: var(--accent); text-decoration: none; }
+.chip.active {
+  color: var(--text); background: var(--panel-2); border-color: var(--accent);
+}
+.mode-filter-note { margin: -0.35rem 0 0.85rem; font-size: 0.85rem; }
+.template-grid {
+  display: grid; gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+.template-card {
+  display: flex; flex-direction: column; gap: 0.55rem; justify-content: space-between;
+  padding: 0.85rem 1rem; border-radius: 10px; background: var(--panel-2);
+  border: 1px solid #2a3a52;
+}
+.life-modes-field {
+  margin: 0.85rem 0; padding: 0.65rem 0.85rem; border: 1px solid #2a3a52;
+  border-radius: 10px; background: var(--panel-2);
+}
+.life-modes-field legend { padding: 0 0.35rem; color: var(--accent); font-weight: 600; }
+.life-modes-checks { display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; }

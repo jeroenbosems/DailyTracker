@@ -19,6 +19,23 @@
   {% if flash %}<div class="flash">{{ flash }}</div>{% endif %}
 
   <div class="card">
+    <h2>Start from template</h2>
+    <p class="muted">Creates a <strong>new</strong> Epic via ingest (<code>mode:new</code>). Never mutates existing Epics or progress.</p>
+    {% if starter_templates %}
+      <div class="template-grid">
+        {% for tpl in starter_templates %}
+          <form method="post" action="/templates/{{ tpl.id }}/start" class="template-card">
+            <strong>{{ tpl.label }}</strong>
+            <button class="primary" type="submit">Start from template</button>
+          </form>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="empty">No starter templates found under docs/templates.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
     <h2>Your Epics</h2>
     <p class="muted">Month-scale ambitions broken into Phases and day-scale Steps. Activate one for Today focus; others stay Parked without punishment.</p>
     {% if not rows %}
@@ -90,6 +107,15 @@
           <option value="{{ p.id }}">{{ p.title }}</option>
         {% endfor %}
       </select>
+
+      <fieldset class="life-modes-field">
+        <legend>Life modes (optional, multi)</legend>
+        <div class="life-modes-checks">
+          {% for m in life_modes %}
+            <label class="check"><input type="checkbox" name="life_modes" value="{{ m }}" /> {{ life_mode_labels[m] }}</label>
+          {% endfor %}
+        </div>
+      </fieldset>
 
       <label for="notes">Notes</label>
       <textarea id="notes" name="notes"></textarea>
