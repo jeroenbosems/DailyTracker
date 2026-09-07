@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Epics · Daily Tracker{% endblock %}
+{% block body %}
+  <div class="topbar">
+    <div class="brand">Daily Tracker</div>
+    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+      <nav class="nav">
+        <a href="/today">Today</a>
+        <a href="/epics" class="active">Epics</a>
+      </nav>
+      <span class="points">{{ user.total_points }} pts</span>
+      <span class="muted">{{ user.username }}</span>
+      <form method="post" action="/logout"><button class="ghost" type="submit">Sign out</button></form>
+    </div>
+  </div>
+
+  {% if flash %}<div class="flash">{{ flash }}</div>{% endif %}
+
+  <div class="card">
+    <h2>Your Epics</h2>
+    <p class="muted">Month-scale ambitions broken into Acts and day-scale Stories. Activate one for Today focus.</p>
+    {% if not rows %}
+      <p class="empty">No Epics yet — create one below (≥2 Acts, each with newline-separated Stories).</p>
+    {% endif %}
+    {% for row in rows %}
+      <div class="item">
+        <div style="flex:1">
+          <h3>
+            {% if row.active %}<span class="badge gold">Active</span>{% endif %}
+            {% if row.epic.legendary %}<span class="badge silver">Legendary</span>{% endif %}
+            <a href="/epics/{{ row.epic.id }}">{{ row.epic.title }}</a>
+            {% if row.epic.completed %}<span class="meta"> · done</span>{% endif %}
+          </h3>
+          <div class="meta">{{ row.done }}/{{ row.total }} stories · {{ "%.0f"|format(row.pct) }}%</div>
+          <div class="progress" style="margin-top:0.4rem"><div class="fill accent" style="width: {{ row.pct }}%"></div></div>
+        </div>
+        {% if not row.active and not row.epic.completed %}
+          <form method="post" action="/epics/{{ row.epic.id }}/activate">
+            <button type="submit">Activate</button>
+          </form>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="card">
+    <h2>New Epic</h2>
+    <p class="muted">Need ≥2 Acts. Stories are one per line inside each Act. Prefer parallel Stories so a session can always advance.</p>
+    <form method="post" action="/epics">
+      <label for="epic_title">Title</label>
+      <input id="epic_title" name="title" required placeholder="e.g. Move into the new apartment" />
+
+      <div class="row cols-2">
+        <div>
+          <label for="identity_end">Identity end state</label>
+          <input id="identity_end" name="identity_end" placeholder="Who you become" />
+        </div>
+        <div>
+          <label for="capability_end">Capability end state</label>
+          <input id="capability_end" name="capability_end" placeholder="What you can do" />
+        </div>
+      </div>
+
+      <label for="preview_label">Preview (taste of the end, unlocks mid-journey)</label>
+      <input id="preview_label" name="preview_label" placeholder="e.g. Trial week living as if moved" />
+
+      <label for="notes">Notes</label>
+      <textarea id="notes" name="notes"></textarea>
+
+      <label class="check">
+        <input type="checkbox" name="legendary" checked /> Legendary ambition (chaptered Acts required)
+      </label>
+
+      {% for i in [1, 2, 3] %}
+      <fieldset class="act-block">
+        <legend>Act {{ i }}{% if i <= 2 %} (required){% else %} (optional){% endif %}</legend>
+        <label>Act title</label>
+        <input name="act_titles" {% if i <= 2 %}required{% endif %} placeholder="Week-scale chapter" />
+        <label>Stories (one per line)</label>
+        <textarea name="act_bits" {% if i <= 2 %}required{% endif %} placeholder="Pack kitchen&#10;Label boxes&#10;Book movers"></textarea>
+        <label>Intermediate deliverable (optional)</label>
+        <input name="act_deliverables" placeholder="Usable outcome when this Act finishes" />
+      </fieldset>
+      {% endfor %}
+
+      <p style="margin-top:0.75rem"><button class="primary" type="submit">Create Epic</button></p>
+    </form>
+  </div>
+{% endblock %}
