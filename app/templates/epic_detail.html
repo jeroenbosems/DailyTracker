@@ -7,6 +7,7 @@
       <nav class="nav">
         <a href="/today">Today</a>
         <a href="/epics" class="active">Epics</a>
+        <a href="/import">Import</a>
       </nav>
       <span class="points">{{ user.total_points }} pts</span>
       <span class="muted">{{ user.username }}</span>
@@ -47,8 +48,10 @@
           <p class="meta">No parent Epic (standalone)</p>
         {% endif %}
       </div>
-      <div style="display:flex;gap:0.5rem">
-        {% if not is_active and not epic.completed %}
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+        {% if is_active and not epic.completed %}
+          <form method="post" action="/epics/{{ epic.id }}/park"><button class="ghost" type="submit">Park</button></form>
+        {% elif not is_active and not epic.completed %}
           <form method="post" action="/epics/{{ epic.id }}/activate"><button class="primary" type="submit">Activate</button></form>
         {% endif %}
         <a class="btn ghost" href="/epics">All Epics</a>

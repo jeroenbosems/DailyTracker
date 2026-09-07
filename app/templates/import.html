@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Import · Daily Tracker{% endblock %}
+{% block body %}
+  <div class="topbar">
+    <div class="brand">Daily Tracker</div>
+    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+      <nav class="nav">
+        <a href="/today">Today</a>
+        <a href="/epics">Epics</a>
+        <a href="/import" class="active">Import</a>
+      </nav>
+      <span class="points">{{ user.total_points }} pts</span>
+      <span class="muted">{{ user.username }}</span>
+      <form method="post" action="/logout"><button class="ghost" type="submit">Sign out</button></form>
+    </div>
+  </div>
+
+  {% if flash %}<div class="flash">{{ flash }}</div>{% endif %}
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+  <div class="card">
+    <h2>Import Epic plan (LLM JSON)</h2>
+    <p class="muted">
+      Paste JSON matching the <code>docs/LLM_INGEST.md</code> schema.
+      Mode comes from the JSON (<code>new</code> or <code>update</code>).
+      Update never silently removes completed Steps — destructive removals need both
+      <code>confirm_destructive: true</code> in JSON and the checkbox below.
+    </p>
+    <form method="post" action="/import" id="import-form">
+      <label for="json_text">JSON</label>
+      <textarea id="json_text" name="json_text" class="json-paste" rows="18" required placeholder='{"mode":"new","confirm_destructive":false,"epic":{...}}'>{{ json_text }}</textarea>
+
+      <p class="meta" id="mode-hint">Mode: <span id="mode-label">—</span></p>
+
+      <label class="check">
+        <input type="checkbox" name="confirm_destructive" id="confirm_destructive" {% if confirm_destructive %}checked{% endif %} />
+        I confirm destructive update (remove existing Steps/Phases, including completed progress)
+      </label>
+
+      <p style="margin-top:0.75rem"><button class="primary" type="submit">Import</button></p>
+    </form>
+  </div>
+  <script>
+    (function () {
+      var ta = document.getElementById("json_text");
+      var label = document.getElementById("mode-label");
+      function refresh() {
+        try {
+          var data = JSON.parse(ta.value);
+          label.textContent = (data && data.mode) ? String(data.mode) : "—";
+        } catch (e) {
+          label.textContent = ta.value.trim() ? "(invalid JSON)" : "—";
+        }
+      }
+      ta.addEventListener("input", refresh);
+      refresh();
+    })();
+  </script>
+{% endblock %}

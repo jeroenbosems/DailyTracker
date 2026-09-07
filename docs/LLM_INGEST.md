@@ -1,7 +1,8 @@
 # LLM ingest contract
 
-**Status:** stub for v0.3 (schema stable enough to draft prompts now)  
-**Normative rules:** REQUIREMENTS R8.*
+**Status:** implemented for v0.3  
+**Normative rules:** REQUIREMENTS R8.*  
+**UI:** `/import` (paste JSON → New or Update)
 
 ## Intent
 
@@ -11,12 +12,17 @@ User describes a project to any LLM → model emits JSON matching this schema �
 
 | Mode | Behavior |
 |------|----------|
-| `new` | Create Epic + Phases + Steps. No prior progress. |
-| `update` | Patch by stable `id`s. **Must not** silently delete completed Steps or reset Phase/Epic completion. |
+| `new` | Create Epic + Phases + Steps. No prior progress. Stores optional `id` values as `external_id`. |
+| `update` | Patch by stable `id`s (`external_id`). **Must not** silently delete completed Steps or reset Phase/Epic completion. |
 
-Destructive updates (remove/replace in-progress Steps) require `confirm_destructive: true`.
+Destructive updates (remove existing Steps/Phases, including in-progress or completed) require **both**:
 
-## Schema (draft)
+1. `confirm_destructive: true` in the JSON, and  
+2. the Import page confirmation checkbox.
+
+## Schema
+
+Stable string ids use the `id` fields below; the app stores them as `external_id` for update matching.
 
 ```json
 {
@@ -49,6 +55,18 @@ Destructive updates (remove/replace in-progress Steps) require `confirm_destruct
   }
 }
 ```
+
+### Field notes
+
+| Field | Meaning |
+|-------|---------|
+| `mode` | `new` or `update` |
+| `confirm_destructive` | Required `true` (with UI checkbox) to remove existing Steps/Phases on update |
+| `epic.id` | Stable external id (required for `update`) |
+| `epic.status` | Optional `active` \| `parked` — `active` sets Active Epic; first Epic also activates when none is Active |
+| `phases[].id` / `steps[].id` | Stable external ids for matching on update |
+| `order` | Sort order (integer) |
+| `priority` | Step priority 1–3 |
 
 ## LLM system prompt (short)
 
