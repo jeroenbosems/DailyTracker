@@ -54,3 +54,7 @@ pytest
 ## License
 
 See `LICENSE`.
+
+## Product requirements
+
+Authoritative product docs live in [`docs/`](./docs/) — start with [`REQUIREMENTS.md`](./docs/REQUIREMENTS.md). Chat is not the spec.
