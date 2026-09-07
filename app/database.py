@@ -5,7 +5,7 @@ from collections.abc import Generator
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
-from app.config import DATABASE_URL
+from app.config import DATABASE_URL, ensure_data_dir
 
 engine = create_engine(
     DATABASE_URL,
@@ -38,4 +38,5 @@ def get_db() -> Generator[Session, None, None]:
 def init_db() -> None:
     from app import models  # noqa: F401
 
+    ensure_data_dir()
     Base.metadata.create_all(bind=engine)

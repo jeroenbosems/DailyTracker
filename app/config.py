@@ -6,7 +6,11 @@ from pathlib import Path
 
 
 DATA_DIR = Path(os.environ.get("DATA_DIR", "/data"))
-DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def ensure_data_dir() -> Path:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    return DATA_DIR
 
 DATABASE_URL = f"sqlite:///{DATA_DIR / 'dailytracker.db'}"
 
@@ -17,6 +21,7 @@ def get_session_secret() -> str:
     env = os.environ.get("SESSION_SECRET")
     if env:
         return env
+    ensure_data_dir()
     if _SECRET_FILE.exists():
         return _SECRET_FILE.read_text(encoding="utf-8").strip()
     secret = secrets.token_urlsafe(32)
