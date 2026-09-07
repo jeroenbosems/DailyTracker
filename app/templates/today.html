@@ -17,6 +17,34 @@
   {% if flash %}<div class="flash">{{ flash }}</div>{% endif %}
 
   <div class="card">
+    <h2>Due now · {{ today.isoformat() }}</h2>
+    <p class="muted">Needed work first — priority + overdue/due today. Gamification never outranks this list.</p>
+    {% if not due_tasks and not due_routines %}
+      <p class="empty">Nothing due right now. Nice — or add a high-priority task.</p>
+    {% endif %}
+    {% for t in due_tasks %}
+      <div class="item">
+        <div>
+          <h3><span class="prio p{{ t.priority }}">P{{ t.priority }}</span>{{ t.title }}</h3>
+          <div class="meta">Task{% if t.due_date %} · due {{ t.due_date.isoformat() }}{% else %} · no due date{% endif %}{% if t.notes %} · {{ t.notes }}{% endif %}</div>
+        </div>
+        <form method="post" action="/tasks/{{ t.id }}/complete"><button type="submit">Complete</button></form>
+      </div>
+    {% endfor %}
+    {% for r in due_routines %}
+      <div class="item">
+        <div>
+          <h3><span class="prio p{{ r.priority }}">P{{ r.priority }}</span>{{ r.title }}</h3>
+          <div class="meta">{{ r.cadence | capitalize }} routine · due {{ r.next_due_on.isoformat() }} · streak {{ r.streak }} (best {{ r.best_streak }}) · {{ r.completion_count }} done</div>
+        </div>
+        <form method="post" action="/routines/{{ r.id }}/complete"><button type="submit">Complete</button></form>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="grid grid-2">
+    <div class="stack">
+      <div class="card">
     <h2>Active Epic</h2>
     {% if not active_epic %}
       <p class="empty">No active Epic. <a href="/epics">Create or activate one</a> so Today always has a next Step. Other Epics can stay Parked — no punishment.</p>
@@ -107,34 +135,6 @@
   </div>
 
   <div class="card">
-    <h2>Due now · {{ today.isoformat() }}</h2>
-    <p class="muted">Needed work first — priority + overdue/due today. Gamification never outranks this list.</p>
-    {% if not due_tasks and not due_routines %}
-      <p class="empty">Nothing due right now. Nice — or add a high-priority task.</p>
-    {% endif %}
-    {% for t in due_tasks %}
-      <div class="item">
-        <div>
-          <h3><span class="prio p{{ t.priority }}">P{{ t.priority }}</span>{{ t.title }}</h3>
-          <div class="meta">Task{% if t.due_date %} · due {{ t.due_date.isoformat() }}{% else %} · no due date{% endif %}{% if t.notes %} · {{ t.notes }}{% endif %}</div>
-        </div>
-        <form method="post" action="/tasks/{{ t.id }}/complete"><button type="submit">Complete</button></form>
-      </div>
-    {% endfor %}
-    {% for r in due_routines %}
-      <div class="item">
-        <div>
-          <h3><span class="prio p{{ r.priority }}">P{{ r.priority }}</span>{{ r.title }}</h3>
-          <div class="meta">{{ r.cadence | capitalize }} routine · due {{ r.next_due_on.isoformat() }} · streak {{ r.streak }} (best {{ r.best_streak }}) · {{ r.completion_count }} done</div>
-        </div>
-        <form method="post" action="/routines/{{ r.id }}/complete"><button type="submit">Complete</button></form>
-      </div>
-    {% endfor %}
-  </div>
-
-  <div class="grid grid-2">
-    <div class="stack">
-      <div class="card">
         <h2>New task</h2>
         <form method="post" action="/tasks">
           <div class="row cols-3">
