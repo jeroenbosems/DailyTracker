@@ -18,6 +18,16 @@
 
   {% if flash %}<div class="flash">{{ flash }}</div>{% endif %}
 
+  <div class="mode-chips" role="navigation" aria-label="Life mode filter">
+    <a class="chip {% if not mode_filter %}active{% endif %}" href="/today">All</a>
+    {% for m in life_modes %}
+      <a class="chip {% if mode_filter == m %}active{% endif %}" href="/today?mode={{ m }}">{{ life_mode_labels[m] }}</a>
+    {% endfor %}
+  </div>
+  {% if mode_filter %}
+    <p class="muted mode-filter-note">Showing {{ life_mode_labels[mode_filter] }} + untagged. Section order unchanged.</p>
+  {% endif %}
+
   <div class="card">
     <h2>Due now · {{ today.isoformat() }}</h2>
     <p class="muted">Needed work first — priority + overdue/due today. Gamification never outranks this list.</p>
@@ -28,7 +38,7 @@
       <div class="item">
         <div>
           <h3><span class="prio p{{ t.priority }}">P{{ t.priority }}</span>{{ t.title }}</h3>
-          <div class="meta">Task{% if t.due_date %} · due {{ t.due_date.isoformat() }}{% else %} · no due date{% endif %}{% if t.notes %} · {{ t.notes }}{% endif %}</div>
+          <div class="meta">Task{% if t.life_mode %} · {{ life_mode_labels.get(t.life_mode, t.life_mode) }}{% endif %}{% if t.due_date %} · due {{ t.due_date.isoformat() }}{% else %} · no due date{% endif %}{% if t.notes %} · {{ t.notes }}{% endif %}</div>
         </div>
         <form method="post" action="/tasks/{{ t.id }}/complete"><button type="submit">Complete</button></form>
       </div>
@@ -37,7 +47,7 @@
       <div class="item">
         <div>
           <h3><span class="prio p{{ r.priority }}">P{{ r.priority }}</span>{{ r.title }}</h3>
-          <div class="meta">{{ r.cadence | capitalize }} routine · due {{ r.next_due_on.isoformat() }} · streak {{ r.streak }} (best {{ r.best_streak }}) · {{ r.completion_count }} done</div>
+          <div class="meta">{{ r.cadence | capitalize }} routine{% if r.life_mode %} · {{ life_mode_labels.get(r.life_mode, r.life_mode) }}{% endif %} · due {{ r.next_due_on.isoformat() }} · streak {{ r.streak }} (best {{ r.best_streak }}) · {{ r.completion_count }} done</div>
         </div>
         <form method="post" action="/routines/{{ r.id }}/complete"><button type="submit">Complete</button></form>
       </div>
@@ -188,6 +198,11 @@
               <input id="task_due" name="due_date" type="date" />
             </div>
           </div>
+          <label for="task_life_mode">Life mode (optional)</label>
+          <select id="task_life_mode" name="life_mode">
+            <option value="">— none —</option>
+            {% for m in life_modes %}<option value="{{ m }}">{{ life_mode_labels[m] }}</option>{% endfor %}
+          </select>
           <label for="task_notes">Notes</label>
           <textarea id="task_notes" name="notes"></textarea>
           <p style="margin-top:0.75rem"><button class="primary" type="submit">Add task</button></p>
@@ -217,6 +232,11 @@
               </select>
             </div>
           </div>
+          <label for="routine_life_mode">Life mode (optional)</label>
+          <select id="routine_life_mode" name="life_mode">
+            <option value="">— none —</option>
+            {% for m in life_modes %}<option value="{{ m }}">{{ life_mode_labels[m] }}</option>{% endfor %}
+          </select>
           <label for="routine_notes">Notes</label>
           <textarea id="routine_notes" name="notes"></textarea>
           <p style="margin-top:0.75rem"><button class="primary" type="submit">Add routine</button></p>

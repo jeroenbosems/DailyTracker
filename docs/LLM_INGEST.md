@@ -1,6 +1,6 @@
 # LLM ingest contract
 
-**Status:** implemented for v0.3  
+**Status:** implemented for v0.3 · templates + life_modes in v0.4  
 **Normative rules:** REQUIREMENTS R8.*  
 **UI:** `/import` (paste JSON → New or Update)
 
@@ -35,6 +35,8 @@ Stable string ids use the `id` fields below; the app stores them as `external_id
     "capability": "Live and work in a finished apartment without renovation hanging over me",
     "preview": "One corner of the living room fully done and usable",
     "status": "active",
+    "path": "full",
+    "life_modes": ["home", "health"],
     "phases": [
       {
         "id": "phase_1",
@@ -47,7 +49,8 @@ Stable string ids use the `id` fields below; the app stores them as `external_id
             "title": "Photograph each room",
             "order": 1,
             "parallel": true,
-            "priority": 1
+            "priority": 1,
+            "life_mode": "home"
           }
         ]
       }
@@ -67,6 +70,8 @@ Stable string ids use the `id` fields below; the app stores them as `external_id
 | `phases[].id` / `steps[].id` | Stable external ids for matching on update |
 | `order` | Sort order (integer) |
 | `priority` | Step priority 1–3 |
+| `epic.life_modes` | Optional array of `work` \| `health` \| `home` \| `learning` |
+| `steps[].life_mode` | Optional single life mode for the Step |
 
 ## LLM system prompt (short)
 
@@ -75,3 +80,17 @@ You break a user's real-life ambitious project into Daily Tracker JSON: one Epic
 ## v0.3.2 path
 
 Optional epic.path: full (default) or focused. Focused plans should use fewer condensed Phases.
+
+## v0.4 life modes + starter templates
+
+Optional `epic.life_modes` (multi) and `steps[].life_mode` (single). Enum: `work`, `health`, `home`, `learning`.
+
+Ready-to-import **mode:new** examples (also available via **Start from template** on `/epics` and `/import`):
+
+| Template | File |
+|----------|------|
+| Side IT project | [`docs/templates/side-it-project.json`](templates/side-it-project.json) |
+| Move house | [`docs/templates/move-house.json`](templates/move-house.json) |
+| Apartment redo | [`docs/templates/apartment-redo.json`](templates/apartment-redo.json) |
+
+Starting a template always creates a **new** Epic — it never updates or wipes existing progress.

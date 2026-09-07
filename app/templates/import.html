@@ -20,6 +20,26 @@
   {% if error %}<div class="error">{{ error }}</div>{% endif %}
 
   <div class="card">
+    <h2>Start from template</h2>
+    <p class="muted">Prefills the JSON below as <code>mode:new</code>, or posts immediately to create a new Epic. Never mutates existing Epics.</p>
+    {% if starter_templates %}
+      <div class="template-grid">
+        {% for tpl in starter_templates %}
+          <div class="template-card">
+            <strong>{{ tpl.label }}</strong>
+            <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.5rem">
+              <a class="btn ghost" href="/import?template={{ tpl.id }}">Prefill</a>
+              <form method="post" action="/templates/{{ tpl.id }}/start" style="display:inline">
+                <button class="primary" type="submit">Start from template</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
     <h2>Import Epic plan (LLM JSON)</h2>
     <p class="muted">
       Paste JSON matching the <code>docs/LLM_INGEST.md</code> schema.

@@ -10,6 +10,7 @@
 | [DECISIONS.md](./DECISIONS.md) | Decision log (what changed and why) |
 | [MOTIVATION.md](./MOTIVATION.md) | Design research / inspiration (non-normative) |
 | [LLM_INGEST.md](./LLM_INGEST.md) | AI-assisted Epic authoring contract (New vs Update) |
+| [templates/](./templates/) | Starter Epic JSON payloads (`mode:new`) for v0.4 |
 
 ## Process
 

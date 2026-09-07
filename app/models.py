@@ -47,6 +47,7 @@ class Task(Base):
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     priority: Mapped[int] = mapped_column(Integer, default=2)
     due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    life_mode: Mapped[str | None] = mapped_column(String(16), nullable=True)
     completed: Mapped[bool] = mapped_column(Boolean, default=False)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
@@ -63,6 +64,7 @@ class Routine(Base):
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     cadence: Mapped[str] = mapped_column(String(16), nullable=False)
     priority: Mapped[int] = mapped_column(Integer, default=2)
+    life_mode: Mapped[str | None] = mapped_column(String(16), nullable=True)
     streak: Mapped[int] = mapped_column(Integer, default=0)
     best_streak: Mapped[int] = mapped_column(Integer, default=0)
     completion_count: Mapped[int] = mapped_column(Integer, default=0)
@@ -106,6 +108,7 @@ class Epic(Base):
     preview_label: Mapped[str | None] = mapped_column(String(255), nullable=True)
     preview_unlocked: Mapped[bool] = mapped_column(Boolean, default=False)
     path: Mapped[str] = mapped_column(String(16), default="full")  # full | focused
+    life_modes: Mapped[str] = mapped_column(Text, default="[]")  # JSON list of life modes
     completed: Mapped[bool] = mapped_column(Boolean, default=False)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
@@ -160,6 +163,7 @@ class Step(Base):
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     parallel: Mapped[bool] = mapped_column(Boolean, default=True)
     priority: Mapped[int] = mapped_column(Integer, default=2)
+    life_mode: Mapped[str | None] = mapped_column(String(16), nullable=True)
     task_id: Mapped[int | None] = mapped_column(ForeignKey("tasks.id"), nullable=True)
     routine_id: Mapped[int | None] = mapped_column(ForeignKey("routines.id"), nullable=True)
     completed: Mapped[bool] = mapped_column(Boolean, default=False)

@@ -31,6 +31,7 @@ Users fill days with **useful** work, feel **progress** and fair **reward**, and
 | **Due now** | Overdue + due today (+ routines due) | Day |
 | **Priority reward** | Fixed Gold / Silver / Bronze by priority 1 / 2 / 3 | On completion |
 | **Period bonus** | N-of-M daily or weekly completion bonus (fixed; weekly > daily) | Day / week |
+| **Life mode** | Optional tag: work / health / home / learning — Today filter chips | Item / Epic |
 
 Do **not** use game-first UI copy (loot, chests, pets, HP). Game vocabulary may appear only in MOTIVATION.md as rationale.
 
@@ -67,7 +68,8 @@ Multi-user, cloud sync, mobile apps, OAuth / IdP, custom reward economies, Jira/
 | **v0.3** | Parked Epics UX polish, LLM ingest New/Update |
 | **v0.3.1** | Reward history (`/rewards`); Today Watch / Nearly done (max 6 pinned + auto) |
 | **v0.3.2** | Full vs Focused Epic paths (path + parked Phases); switch without silent loss |
-| **Later** | life-mode filters, follow-on Epic, reward shop |
+| **v0.4** | Life-mode tags + Today filter chips; starter templates (mode:new ingest) |
+| **Later** | follow-on Epic, reward shop |
 
 Also: **Watch / Nearly done** never outranks Due now or Active Epic on Today (R7.1). Pins store Steps and open Tasks only.
 

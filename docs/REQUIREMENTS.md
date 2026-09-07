@@ -3,7 +3,7 @@
 Normative. **MUST** / **SHOULD** / **MAY**.  
 If this file conflicts with chat, **this file wins** after merge to `main`.
 
-Version tags: `[v0.1]` shipped · `[v0.2]` shipped · `[v0.3]` shipped · `[v0.3.1]` shipped · `[v0.3.2]` in progress
+Version tags: `[v0.1]` shipped · `[v0.2]` shipped · `[v0.3]` shipped · `[v0.3.1]` shipped · `[v0.3.2]` shipped · `[v0.4]` in progress
 
 ---
 
@@ -45,6 +45,7 @@ Version tags: `[v0.1]` shipped · `[v0.2]` shipped · `[v0.3]` shipped · `[v0.3
 | R4.4 | MUST prefer needed work (priority 1 / Active Epic Steps) over lower-value busywork | v0.1+ |
 | R4.5 | SHOULD surface Watch / Nearly done on Today (max 6: pinned Steps/Tasks + auto nearly-done Steps), below Due now and Active Epic | v0.3.1 |
 | R4.6 | MUST provide read-only RewardLog history (newest first) without DIY point economies | v0.3.1 |
+| R4.7 | SHOULD offer Today life-mode filter chips (All + work/health/home/learning) that hide/show items without reordering sections | v0.4 |
 
 ## R5 — Epics, Phases, Steps
 
@@ -63,6 +64,7 @@ Version tags: `[v0.1]` shipped · `[v0.2]` shipped · `[v0.3]` shipped · `[v0.3
 | R5.11 | MUST allow exactly one Active Epic for Today focus | v0.2 |
 | R5.12 | SHOULD support Parked Epics without punishing the user | v0.2 / polish v0.3 |
 | R5.13 | SHOULD support Full vs Focused Epic paths; switches must not silently wipe progress | v0.3.2 |
+| R5.14 | SHOULD support optional life-mode tags (single on Task/Routine/Step; multi on Epic) | v0.4 |
 
 ## R6 — Soft miss & Period bonuses
 
@@ -89,6 +91,7 @@ Version tags: `[v0.1]` shipped · `[v0.2]` shipped · `[v0.3]` shipped · `[v0.3
 | R8.2 | MUST support import modes **New** and **Update** | v0.3 |
 | R8.3 | Update MUST NOT silently delete or reset completed Steps / Phase progress | v0.3 |
 | R8.4 | Destructive Update MUST require explicit confirmation | v0.3 |
+| R8.5 | SHOULD ship starter Epic templates as `mode:new` ingest payloads; starting a template MUST NOT mutate existing Epics/progress | v0.4 |
 
 ## R9 — Documentation process
 

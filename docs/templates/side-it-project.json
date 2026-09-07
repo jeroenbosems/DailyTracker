@@ -1,0 +1,112 @@
+{
+  "mode": "new",
+  "confirm_destructive": false,
+  "epic": {
+    "id": "tpl_side_it_project",
+    "title": "Ship a useful side IT project",
+    "identity": "Someone who finishes small tools end-to-end",
+    "capability": "Design, build, and ship a focused side project without endless rewrites",
+    "preview": "A working local demo you can show in under five minutes",
+    "status": "active",
+    "path": "full",
+    "life_modes": ["work", "learning"],
+    "phases": [
+      {
+        "id": "phase_scope",
+        "title": "Scope the problem",
+        "order": 1,
+        "deliverable": "One-page brief: user, problem, non-goals, and success check",
+        "steps": [
+          {
+            "id": "step_user",
+            "title": "Write the primary user and the pain in one paragraph",
+            "order": 1,
+            "parallel": true,
+            "priority": 1,
+            "life_mode": "work"
+          },
+          {
+            "id": "step_nongoals",
+            "title": "List three explicit non-goals to protect focus",
+            "order": 2,
+            "parallel": true,
+            "priority": 2,
+            "life_mode": "work"
+          },
+          {
+            "id": "step_success",
+            "title": "Define a five-minute demo success check",
+            "order": 3,
+            "parallel": true,
+            "priority": 1,
+            "life_mode": "learning"
+          }
+        ]
+      },
+      {
+        "id": "phase_build",
+        "title": "Build the thin vertical slice",
+        "order": 2,
+        "deliverable": "Runnable core path with tests for the happy case",
+        "steps": [
+          {
+            "id": "step_skeleton",
+            "title": "Scaffold the repo and a single runnable entrypoint",
+            "order": 1,
+            "parallel": true,
+            "priority": 1,
+            "life_mode": "work"
+          },
+          {
+            "id": "step_core",
+            "title": "Implement the core path without polish",
+            "order": 2,
+            "parallel": true,
+            "priority": 1,
+            "life_mode": "work"
+          },
+          {
+            "id": "step_tests",
+            "title": "Add tests that lock the happy path",
+            "order": 3,
+            "parallel": true,
+            "priority": 2,
+            "life_mode": "learning"
+          }
+        ]
+      },
+      {
+        "id": "phase_ship",
+        "title": "Ship and close the loop",
+        "order": 3,
+        "deliverable": "Tagged release notes + short demo recording or walkthrough",
+        "steps": [
+          {
+            "id": "step_readme",
+            "title": "Write a clear README with run steps",
+            "order": 1,
+            "parallel": true,
+            "priority": 2,
+            "life_mode": "work"
+          },
+          {
+            "id": "step_tag",
+            "title": "Tag a v0.1 release and note what is intentionally unfinished",
+            "order": 2,
+            "parallel": true,
+            "priority": 1,
+            "life_mode": "work"
+          },
+          {
+            "id": "step_demo",
+            "title": "Record or rehearse the five-minute demo",
+            "order": 3,
+            "parallel": true,
+            "priority": 2,
+            "life_mode": "learning"
+          }
+        ]
+      }
+    ]
+  }
+}

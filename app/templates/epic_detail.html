@@ -43,6 +43,9 @@
             {% if epic.preview_unlocked %}(unlocked){% else %}(unlocks around 25%){% endif %}
           </p>
         {% endif %}
+        {% if epic_life_modes %}
+          <p class="meta">Life modes: {% for m in epic_life_modes %}{{ life_mode_labels.get(m, m) }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+        {% endif %}
         {% if epic.notes %}<p class="meta">{{ epic.notes }}</p>{% endif %}
         {% if parent %}
           <p class="meta">Parent Epic: <a href="/epics/{{ parent.id }}">{{ parent.title }}</a></p>
@@ -119,7 +122,8 @@
             <div class="meta">
               {% if step.task_id %}Linked task #{{ step.task_id }}{% endif %}
               {% if step.routine_id %}{% if step.task_id %} · {% endif %}Linked routine #{{ step.routine_id }}{% endif %}
-              {% if not step.task_id and not step.routine_id %}Standalone step{% endif %}
+              {% if step.life_mode %}{{ life_mode_labels.get(step.life_mode, step.life_mode) }}{% endif %}
+              {% if not step.task_id and not step.routine_id %}{% if step.life_mode %} · {% endif %}Standalone step{% endif %}
             </div>
           </div>
           {% if not step.completed %}
@@ -162,6 +166,30 @@
         {% endif %}
       </div>
     {% endfor %}
+    {% if not row.phase.completed %}
+      <form method="post" action="/phases/{{ row.phase.id }}/steps" class="row cols-3" style="margin-top:0.85rem">
+        <div>
+          <label>New Step</label>
+          <input name="title" required placeholder="Day-scale next action" />
+        </div>
+        <div>
+          <label>Priority</label>
+          <select name="priority">
+            <option value="1">1</option>
+            <option value="2" selected>2</option>
+            <option value="3">3</option>
+          </select>
+        </div>
+        <div>
+          <label>Life mode</label>
+          <select name="life_mode">
+            <option value="">— none —</option>
+            {% for m in life_modes %}<option value="{{ m }}">{{ life_mode_labels[m] }}</option>{% endfor %}
+          </select>
+        </div>
+        <div style="align-self:end"><button type="submit">Add Step</button></div>
+      </form>
+    {% endif %}
   </div>
   {% endfor %}
 {% endblock %}

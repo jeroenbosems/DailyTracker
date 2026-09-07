@@ -36,13 +36,17 @@ def get_db() -> Generator[Session, None, None]:
 
 
 def _migrate_schema() -> None:
-    """Add v0.3 columns to existing SQLite DBs (create_all does not ALTER)."""
+    """Add columns to existing SQLite DBs (create_all does not ALTER)."""
     alterations = [
         ("epics", "external_id", "ALTER TABLE epics ADD COLUMN external_id VARCHAR(128)"),
         ("phases", "external_id", "ALTER TABLE phases ADD COLUMN external_id VARCHAR(128)"),
         ("steps", "external_id", "ALTER TABLE steps ADD COLUMN external_id VARCHAR(128)"),
         ("epics", "path", "ALTER TABLE epics ADD COLUMN path VARCHAR(16) DEFAULT 'full'"),
         ("phases", "parked", "ALTER TABLE phases ADD COLUMN parked BOOLEAN DEFAULT 0"),
+        ("tasks", "life_mode", "ALTER TABLE tasks ADD COLUMN life_mode VARCHAR(16)"),
+        ("routines", "life_mode", "ALTER TABLE routines ADD COLUMN life_mode VARCHAR(16)"),
+        ("steps", "life_mode", "ALTER TABLE steps ADD COLUMN life_mode VARCHAR(16)"),
+        ("epics", "life_modes", "ALTER TABLE epics ADD COLUMN life_modes TEXT DEFAULT '[]'"),
     ]
     with engine.begin() as conn:
         for table, column, ddl in alterations:
@@ -50,6 +54,8 @@ def _migrate_schema() -> None:
                 names = {row[1] for row in conn.execute(text(f"PRAGMA table_info({table})")).fetchall()}
             except Exception:
                 continue
+            if not names:
+                continue  # table not created yet
             if column not in names:
                 conn.execute(text(ddl))
 

@@ -23,6 +23,17 @@ from app.auth import (
 from app.config import SECURE_COOKIES, SESSION_MAX_AGE
 from app.database import get_db, init_db
 from app.ingest import IngestError, apply_ingest
+from app.life_modes import (
+    LIFE_MODE_LABELS,
+    LIFE_MODES,
+    life_modes_from_json,
+    life_modes_to_json,
+    matches_epic_modes,
+    matches_single_mode,
+    normalize_life_mode,
+    normalize_life_modes,
+    parse_filter_mode,
+)
 from app.epics_logic import (
     FOCUSED_KEEP_PHASES,
     PATH_FOCUSED,
@@ -56,10 +67,55 @@ from app.watch_logic import (
 )
 
 BASE_DIR = Path(__file__).resolve().parent
+REPO_ROOT = BASE_DIR.parent
+STARTER_TEMPLATES_DIR = REPO_ROOT / "docs" / "templates"
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 app = FastAPI(title="Daily Tracker", docs_url=None, redoc_url=None, openapi_url=None)
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+
+STARTER_TEMPLATE_FILES = (
+    ("side-it-project.json", "Side IT project"),
+    ("move-house.json", "Move house"),
+    ("apartment-redo.json", "Apartment redo"),
+)
+
+
+def _list_starter_templates() -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    for filename, label in STARTER_TEMPLATE_FILES:
+        path = STARTER_TEMPLATES_DIR / filename
+        if path.is_file():
+            rows.append({"id": filename.removesuffix(".json"), "filename": filename, "label": label})
+    return rows
+
+
+def _load_starter_template(template_id: str) -> str:
+    safe = (template_id or "").strip().lower().replace(" ", "-")
+    # Allow id with or without .json
+    if safe.endswith(".json"):
+        safe = safe[: -len(".json")]
+    allowed = {name.removesuffix(".json") for name, _ in STARTER_TEMPLATE_FILES}
+    if safe not in allowed:
+        raise HTTPException(status_code=404, detail="Template not found.")
+    path = STARTER_TEMPLATES_DIR / f"{safe}.json"
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="Template not found.")
+    return path.read_text(encoding="utf-8")
+
+
+def _parse_optional_life_mode(raw: str) -> str | None:
+    try:
+        return normalize_life_mode(raw)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from None
+
+
+def _parse_life_modes_form(raw_values: list[str] | None) -> str:
+    try:
+        return life_modes_to_json(normalize_life_modes(list(raw_values or [])))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from None
 
 
 @app.on_event("startup")
@@ -265,16 +321,26 @@ def _due_now(user: User, today: date) -> tuple[list[Task], list[Routine]]:
 def today_view(request: Request, db: Session = Depends(get_db), user: User = Depends(require_user)):
     today = date.today()
     ensure_default_period_bonuses(db, user)
+    mode_filter = parse_filter_mode(request.query_params.get("mode"))
     due_tasks, due_routines = _due_now(user, today)
+    # Life-mode filter: hide/show within lists only — never reorder sections
+    due_tasks = [t for t in due_tasks if matches_single_mode(t.life_mode, mode_filter)]
+    due_routines = [r for r in due_routines if matches_single_mode(r.life_mode, mode_filter)]
     active = _active_epic(db, user)
-    next_step_item = next_step(active) if active else None
-    phase = current_phase(active) if active else None
+    show_active = bool(active) and matches_epic_modes(getattr(active, "life_modes", None), mode_filter)
+    next_step_item = None
+    phase = None
     phase_done = phase_total = 0
     phase_pct = overall_pct = 0.0
     epic_done = epic_total = 0
-    if active and phase:
-        phase_done, phase_total, phase_pct = phase_progress(phase)
-    if active:
+    if show_active and active:
+        next_step_item = next_step(active)
+        if next_step_item and not matches_single_mode(next_step_item.life_mode, mode_filter):
+            # Keep Active Epic card when epic matches; hide next Step if tagged differently
+            next_step_item = None
+        phase = current_phase(active)
+        if phase:
+            phase_done, phase_total, phase_pct = phase_progress(phase)
         epic_done, epic_total, overall_pct = epic_progress(active)
     all_epics = db.scalars(select(Epic).where(Epic.user_id == user.id)).all()
     parked_count = sum(
@@ -284,7 +350,27 @@ def today_view(request: Request, db: Session = Depends(get_db), user: User = Dep
     )
     watch_rows = build_watch_board(db, user)
     db.commit()  # persist any completed-pin cleanup
+    # Filter Watch rows by underlying item life_mode (untagged OR matching)
+    filtered_watch = []
+    for w in watch_rows:
+        item_mode = None
+        if w.kind == "task":
+            task = db.get(Task, w.ref_id)
+            item_mode = task.life_mode if task else None
+        elif w.kind == "step":
+            step = db.get(Step, w.ref_id)
+            item_mode = step.life_mode if step else None
+        if matches_single_mode(item_mode, mode_filter):
+            filtered_watch.append(w)
     pins = pinned_ref_set(db, user)
+    open_tasks = sorted(
+        [t for t in user.tasks if not t.completed and matches_single_mode(t.life_mode, mode_filter)],
+        key=lambda t: (t.priority, t.due_date or date.max),
+    )
+    routines = sorted(
+        [r for r in user.routines if matches_single_mode(r.life_mode, mode_filter)],
+        key=lambda r: (r.priority, r.next_due_on),
+    )
     return templates.TemplateResponse(
         "today.html",
         {
@@ -293,15 +379,12 @@ def today_view(request: Request, db: Session = Depends(get_db), user: User = Dep
             "today": today,
             "due_tasks": due_tasks,
             "due_routines": due_routines,
-            "routines": sorted(user.routines, key=lambda r: (r.priority, r.next_due_on)),
-            "open_tasks": sorted(
-                [t for t in user.tasks if not t.completed],
-                key=lambda t: (t.priority, t.due_date or date.max),
-            ),
+            "routines": routines,
+            "open_tasks": open_tasks,
             "recent_rewards": sorted(user.reward_logs, key=lambda r: r.created_at, reverse=True)[:8],
             "flash": _read_flash(request),
             "cadences": CADENCES,
-            "active_epic": active,
+            "active_epic": active if show_active else None,
             "next_step": next_step_item,
             "current_phase": phase,
             "phase_done": phase_done,
@@ -312,8 +395,11 @@ def today_view(request: Request, db: Session = Depends(get_db), user: User = Dep
             "overall_pct": overall_pct,
             "period_bonuses": period_bonus_snapshot(db, user, today),
             "parked_count": parked_count,
-            "watch_rows": watch_rows,
+            "watch_rows": filtered_watch,
             "pinned_refs": pins,
+            "life_modes": LIFE_MODES,
+            "life_mode_labels": LIFE_MODE_LABELS,
+            "mode_filter": mode_filter,
         },
     )
 
@@ -324,6 +410,7 @@ def create_task(
     notes: str = Form(""),
     priority: int = Form(2),
     due_date: str = Form(""),
+    life_mode: str = Form(""),
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
 ):
@@ -338,6 +425,7 @@ def create_task(
         notes=notes.strip() or None,
         priority=priority,
         due_date=parsed_due,
+        life_mode=_parse_optional_life_mode(life_mode),
     )
     db.add(task)
     db.commit()
@@ -379,6 +467,7 @@ def create_routine(
     notes: str = Form(""),
     cadence: str = Form(...),
     priority: int = Form(2),
+    life_mode: str = Form(""),
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
 ):
@@ -396,6 +485,7 @@ def create_routine(
         notes=notes.strip() or None,
         cadence=cadence,
         priority=priority,
+        life_mode=_parse_optional_life_mode(life_mode),
         next_due_on=today,
     )
     db.add(routine)
@@ -481,6 +571,9 @@ def epics_list(request: Request, db: Session = Depends(get_db), user: User = Dep
             "rows": rows,
             "parent_choices": parent_choices,
             "flash": _read_flash(request),
+            "life_modes": LIFE_MODES,
+            "life_mode_labels": LIFE_MODE_LABELS,
+            "starter_templates": _list_starter_templates(),
         },
     )
 
@@ -495,6 +588,7 @@ def create_epic(
     legendary: str = Form("on"),
     parent_epic_id: str = Form(""),
     path: str = Form("full"),
+    life_modes: list[str] = Form([]),
     phase_titles: list[str] = Form(...),
     phase_steps: list[str] = Form(...),
     phase_deliverables: list[str] = Form([]),
@@ -555,6 +649,7 @@ def create_epic(
         capability_end=capability_end.strip() or None,
         preview_label=preview_label.strip() or None,
         path=epic_path,
+        life_modes=_parse_life_modes_form(life_modes),
     )
     db.add(epic)
     db.flush()
@@ -644,6 +739,9 @@ def epic_detail(
             "routines": routines,
             "flash": _read_flash(request),
             "pinned_refs": pinned_ref_set(db, user),
+            "life_modes": LIFE_MODES,
+            "life_mode_labels": LIFE_MODE_LABELS,
+            "epic_life_modes": life_modes_from_json(epic.life_modes),
         },
     )
 
@@ -784,6 +882,36 @@ def link_step(
     return _flash_redirect(f"/epics/{epic.id}", "Step linked")
 
 
+@app.post("/phases/{phase_id}/steps")
+def create_step(
+    phase_id: int,
+    title: str = Form(...),
+    priority: int = Form(2),
+    life_mode: str = Form(""),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    phase = db.get(Phase, phase_id)
+    if not phase or phase.epic.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Phase not found.")
+    title = title.strip()
+    if not title:
+        raise HTTPException(status_code=400, detail="Step title is required.")
+    priority = min(3, max(1, priority))
+    max_order = max((s.sort_order for s in phase.steps), default=-1)
+    db.add(
+        Step(
+            phase_id=phase.id,
+            title=title,
+            sort_order=max_order + 1,
+            parallel=True,
+            priority=priority,
+            life_mode=_parse_optional_life_mode(life_mode),
+        )
+    )
+    db.commit()
+    return _flash_redirect(f"/epics/{phase.epic_id}", "Step created")
+
 
 # ---------------------------------------------------------------------------
 # LLM ingest (v0.3) — New / Update via JSON (R8.*)
@@ -792,6 +920,13 @@ def link_step(
 
 @app.get("/import", response_class=HTMLResponse)
 def import_get(request: Request, db: Session = Depends(get_db), user: User = Depends(require_user)):
+    prefill = ""
+    template_id = request.query_params.get("template")
+    if template_id:
+        try:
+            prefill = _load_starter_template(template_id)
+        except HTTPException:
+            prefill = ""
     return templates.TemplateResponse(
         "import.html",
         {
@@ -799,8 +934,9 @@ def import_get(request: Request, db: Session = Depends(get_db), user: User = Dep
             "user": user,
             "flash": _read_flash(request),
             "error": None,
-            "json_text": "",
+            "json_text": prefill,
             "confirm_destructive": False,
+            "starter_templates": _list_starter_templates(),
         },
     )
 
@@ -829,9 +965,44 @@ def import_post(
                 "error": exc.message,
                 "json_text": json_text,
                 "confirm_destructive": ui_confirm,
+                "starter_templates": _list_starter_templates(),
             },
             status_code=400,
         )
+
+
+@app.post("/templates/{template_id}/start")
+def start_from_template(
+    template_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    """Create a brand-new Epic from a starter template (mode:new ingest). Never mutates existing."""
+    import json as _json
+    import uuid as _uuid
+
+    raw = _load_starter_template(template_id)
+    try:
+        data = _json.loads(raw)
+        # Fresh external ids per start so templates can be used repeatedly without colliding
+        suffix = _uuid.uuid4().hex[:8]
+        epic = data.get("epic") or {}
+        if isinstance(epic.get("id"), str) and epic["id"]:
+            epic["id"] = f"{epic['id']}_{suffix}"
+        for phase in epic.get("phases") or []:
+            if isinstance(phase, dict) and isinstance(phase.get("id"), str) and phase["id"]:
+                phase["id"] = f"{phase['id']}_{suffix}"
+            for step in (phase.get("steps") if isinstance(phase, dict) else None) or []:
+                if isinstance(step, dict) and isinstance(step.get("id"), str) and step["id"]:
+                    step["id"] = f"{step['id']}_{suffix}"
+        data["mode"] = "new"
+        data["confirm_destructive"] = False
+        msg = apply_ingest(db, user, _json.dumps(data), ui_confirm_destructive=False)
+        db.commit()
+        return _flash_redirect("/epics", msg)
+    except IngestError as exc:
+        db.rollback()
+        return _flash_redirect("/epics", f"Template failed: {exc.message}")
 
 
 # ---------------------------------------------------------------------------

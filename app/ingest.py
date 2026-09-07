@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
 from app.epics_logic import PATH_FULL, normalize_path
+from app.life_modes import life_modes_to_json, normalize_life_mode, normalize_life_modes
 from app.models import Epic, Phase, Step, User
 
 
@@ -76,6 +77,11 @@ def validate_ingest(data: dict[str, Any]) -> dict[str, Any]:
     except ValueError as exc:
         raise IngestError(str(exc)) from None
 
+    try:
+        epic_life_modes = normalize_life_modes(epic.get("life_modes", []))
+    except ValueError as exc:
+        raise IngestError(str(exc)) from None
+
     phases_raw = epic.get("phases")
     if not isinstance(phases_raw, list) or not phases_raw:
         raise IngestError("epic.phases must be a non-empty array.")
@@ -132,6 +138,10 @@ def validate_ingest(data: dict[str, Any]) -> dict[str, Any]:
             priority = step.get("priority", 2)
             if not isinstance(priority, int) or isinstance(priority, bool) or priority < 1 or priority > 3:
                 raise IngestError(f"phases[{i}].steps[{j}].priority must be 1, 2, or 3.")
+            try:
+                step_life_mode = normalize_life_mode(step.get("life_mode"))
+            except ValueError as exc:
+                raise IngestError(f"phases[{i}].steps[{j}].{exc}") from None
             steps.append(
                 {
                     "external_id": sid,
@@ -139,6 +149,7 @@ def validate_ingest(data: dict[str, Any]) -> dict[str, Any]:
                     "order": sorder,
                     "parallel": parallel,
                     "priority": priority,
+                    "life_mode": step_life_mode,
                 }
             )
         phases.append(
@@ -172,6 +183,7 @@ def validate_ingest(data: dict[str, Any]) -> dict[str, Any]:
             "preview": (preview or "").strip() or None if isinstance(preview, str) else None,
             "status": status,
             "path": epic_path,
+            "life_modes": epic_life_modes,
             "phases": phases,
         },
     }
@@ -208,6 +220,7 @@ def _apply_new(db: Session, user: User, payload: dict[str, Any]) -> str:
         capability_end=epic_data["capability"],
         preview_label=epic_data["preview"],
         path=epic_data.get("path") or PATH_FULL,
+        life_modes=life_modes_to_json(epic_data.get("life_modes") or []),
         legendary=True,
     )
     db.add(epic)
@@ -232,6 +245,7 @@ def _apply_new(db: Session, user: User, payload: dict[str, Any]) -> str:
                     sort_order=step_data["order"],
                     parallel=step_data["parallel"],
                     priority=step_data["priority"],
+                    life_mode=step_data.get("life_mode"),
                 )
             )
 
@@ -321,6 +335,9 @@ def _apply_update(
     if epic_data.get("path"):
         epic.path = epic_data["path"]
 
+    if "life_modes" in epic_data:
+        epic.life_modes = life_modes_to_json(epic_data.get("life_modes") or [])
+
     if epic_data["status"] == "active":
         user.active_epic_id = epic.id
     elif epic_data["status"] == "parked" and user.active_epic_id == epic.id:
@@ -374,6 +391,7 @@ def _apply_update(
                         sort_order=step_data["order"],
                         parallel=step_data["parallel"],
                         priority=step_data["priority"],
+                        life_mode=step_data.get("life_mode"),
                     )
                 )
             else:
@@ -381,6 +399,8 @@ def _apply_update(
                 step.sort_order = step_data["order"]
                 step.parallel = step_data["parallel"]
                 step.priority = step_data["priority"]
+                if "life_mode" in step_data:
+                    step.life_mode = step_data.get("life_mode")
                 # never reset step.completed
 
     # Silence unused (orphan_phases kept intentionally)
