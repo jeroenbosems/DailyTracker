@@ -2,6 +2,12 @@
 
 Append-only. Newest first. Chat opinions do not count until recorded here and reflected in REQUIREMENTS.md / PRODUCT.md.
 
+## 2026-09-07 — v0.3.1 Watch + reward history
+
+**Decision:** Ship read-only `/rewards` history and Today **Watch / Nearly done** (max 6: user pins + auto nearly-done Steps). Card stays below Due now / Active Epic. Full vs Focused paths remain out.  
+**Why:** Cleared v0.3.1 scope; surface progress without DIY economy or vanity outranking needed work (R7.1).  
+**Affects:** ACCEPTANCE v0.3.1; PRODUCT roadmap
+
 ## 2026-09-07 — v0.3 Park + LLM ingest gate
 
 **Decision:** Ship explicit Park (clears Active only; progress stays) and LLM JSON ingest New/Update with `external_id` matching; destructive removals need JSON + UI confirm. Full/Focused paths, reward history, and watch list stay out of this gate.  

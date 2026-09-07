@@ -3,7 +3,7 @@
 Normative. **MUST** / **SHOULD** / **MAY**.  
 If this file conflicts with chat, **this file wins** after merge to `main`.
 
-Version tags: `[v0.1]` shipped · `[v0.2]` shipped · `[v0.3]` in progress
+Version tags: `[v0.1]` shipped · `[v0.2]` shipped · `[v0.3]` shipped · `[v0.3.1]` in progress
 
 ---
 
@@ -43,6 +43,8 @@ Version tags: `[v0.1]` shipped · `[v0.2]` shipped · `[v0.3]` in progress
 | R4.2 | MUST NOT put undated open Tasks in Due now | v0.1 |
 | R4.3 | MUST sort Due now by priority asc, then due date asc, then created | v0.1 |
 | R4.4 | MUST prefer needed work (priority 1 / Active Epic Steps) over lower-value busywork | v0.1+ |
+| R4.5 | SHOULD surface Watch / Nearly done on Today (max 6: pinned Steps/Tasks + auto nearly-done Steps), below Due now and Active Epic | v0.3.1 |
+| R4.6 | MUST provide read-only RewardLog history (newest first) without DIY point economies | v0.3.1 |
 
 ## R5 — Epics, Phases, Steps
 

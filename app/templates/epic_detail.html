@@ -7,6 +7,7 @@
       <nav class="nav">
         <a href="/today">Today</a>
         <a href="/epics" class="active">Epics</a>
+        <a href="/rewards">Rewards</a>
         <a href="/import">Import</a>
       </nav>
       <span class="points">{{ user.total_points }} pts</span>
@@ -119,7 +120,24 @@
             </div>
           </div>
           {% if not step.completed %}
-            <form method="post" action="/steps/{{ step.id }}/complete"><button type="submit">Complete</button></form>
+            <div style="display:flex;gap:0.4rem;flex-wrap:wrap">
+              {% if ("step", step.id) in pinned_refs %}
+                <form method="post" action="/watch/unpin">
+                  <input type="hidden" name="kind" value="step" />
+                  <input type="hidden" name="ref_id" value="{{ step.id }}" />
+                  <input type="hidden" name="next" value="/epics/{{ epic.id }}" />
+                  <button class="ghost" type="submit">Unpin</button>
+                </form>
+              {% else %}
+                <form method="post" action="/watch/pin">
+                  <input type="hidden" name="kind" value="step" />
+                  <input type="hidden" name="ref_id" value="{{ step.id }}" />
+                  <input type="hidden" name="next" value="/epics/{{ epic.id }}" />
+                  <button class="ghost" type="submit">Pin</button>
+                </form>
+              {% endif %}
+              <form method="post" action="/steps/{{ step.id }}/complete"><button type="submit">Complete</button></form>
+            </div>
           {% endif %}
         </div>
         {% if not step.completed %}

@@ -30,7 +30,7 @@ from app.epics_logic import (
     next_step,
     phase_progress,
 )
-from app.models import Epic, Phase, Routine, Step, Task, User
+from app.models import Epic, Phase, RewardLog, Routine, Step, Task, User
 from app.period_bonuses import (
     ensure_default_period_bonuses,
     period_bonus_snapshot,
@@ -38,6 +38,16 @@ from app.period_bonuses import (
 )
 from app.rewards import grant_reward
 from app.routines_logic import CADENCES, advance_due, streak_continues
+from app.watch_logic import (
+    KIND_STEP,
+    KIND_TASK,
+    WatchFullError,
+    build_watch_board,
+    cleanup_ref,
+    pin_item,
+    pinned_ref_set,
+    unpin_item,
+)
 
 BASE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
@@ -266,6 +276,9 @@ def today_view(request: Request, db: Session = Depends(get_db), user: User = Dep
         for e in all_epics
         if not e.completed and e.id != user.active_epic_id
     )
+    watch_rows = build_watch_board(db, user)
+    db.commit()  # persist any completed-pin cleanup
+    pins = pinned_ref_set(db, user)
     return templates.TemplateResponse(
         "today.html",
         {
@@ -293,6 +306,8 @@ def today_view(request: Request, db: Session = Depends(get_db), user: User = Dep
             "overall_pct": overall_pct,
             "period_bonuses": period_bonus_snapshot(db, user, today),
             "parked_count": parked_count,
+            "watch_rows": watch_rows,
+            "pinned_refs": pins,
         },
     )
 
@@ -339,6 +354,7 @@ def complete_task(
         grant_reward(db, user, task.priority, f"Completed task: {task.title}")
         flashes.append("Task completed")
         flashes.extend(record_completion(db, user))
+        cleanup_ref(db, user, KIND_TASK, task.id)
         # Auto-complete linked steps
         linked = db.scalars(
             select(Step).where(Step.task_id == task.id, Step.completed.is_(False))
@@ -346,6 +362,7 @@ def complete_task(
         for step in linked:
             _ = step.phase.epic
             flashes.append(complete_step(db, user, step))
+            cleanup_ref(db, user, KIND_STEP, step.id)
         db.commit()
     return _flash_redirect("/today", " · ".join(flashes) if flashes else "Already completed")
 
@@ -416,6 +433,7 @@ def complete_routine(
     for step in linked:
         _ = step.phase.epic
         flashes.append(complete_step(db, user, step))
+        cleanup_ref(db, user, KIND_STEP, step.id)
     db.commit()
     return _flash_redirect("/today", " · ".join(flashes))
 
@@ -602,6 +620,7 @@ def epic_detail(
             "open_tasks": open_tasks,
             "routines": routines,
             "flash": _read_flash(request),
+            "pinned_refs": pinned_ref_set(db, user),
         },
     )
 
@@ -688,6 +707,7 @@ def complete_step_route(
     flashes = [msg]
     if "Already" not in msg:
         flashes.extend(record_completion(db, user))
+        cleanup_ref(db, user, KIND_STEP, step.id)
     db.commit()
     return _flash_redirect(f"/epics/{epic.id}", " · ".join(flashes))
 
@@ -775,6 +795,70 @@ def import_post(
             },
             status_code=400,
         )
+
+
+# ---------------------------------------------------------------------------
+# Rewards history + Watch / Nearly done (v0.3.1)
+# ---------------------------------------------------------------------------
+
+
+@app.get("/rewards", response_class=HTMLResponse)
+def rewards_history(
+    request: Request, db: Session = Depends(get_db), user: User = Depends(require_user)
+):
+    logs = db.scalars(
+        select(RewardLog)
+        .where(RewardLog.user_id == user.id)
+        .order_by(RewardLog.created_at.desc(), RewardLog.id.desc())
+    ).all()
+    return templates.TemplateResponse(
+        "rewards.html",
+        {
+            "request": request,
+            "user": user,
+            "logs": logs,
+            "flash": _read_flash(request),
+        },
+    )
+
+
+@app.post("/watch/pin")
+def watch_pin(
+    kind: str = Form(...),
+    ref_id: int = Form(...),
+    next: str = Form("/today"),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    dest = next.strip() or "/today"
+    if not dest.startswith("/"):
+        dest = "/today"
+    try:
+        pin_item(db, user, kind, ref_id)
+        db.commit()
+        return _flash_redirect(dest, "Pinned to Watch")
+    except WatchFullError as exc:
+        db.rollback()
+        return _flash_redirect(dest, exc.message)
+    except ValueError as exc:
+        db.rollback()
+        return _flash_redirect(dest, str(exc))
+
+
+@app.post("/watch/unpin")
+def watch_unpin(
+    kind: str = Form(...),
+    ref_id: int = Form(...),
+    next: str = Form("/today"),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    dest = next.strip() or "/today"
+    if not dest.startswith("/"):
+        dest = "/today"
+    unpin_item(db, user, kind, ref_id)
+    db.commit()
+    return _flash_redirect(dest, "Unpinned from Watch")
 
 
 @app.get("/health")

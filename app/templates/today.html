@@ -7,6 +7,7 @@
       <nav class="nav">
         <a href="/today" class="active">Today</a>
         <a href="/epics">Epics</a>
+        <a href="/rewards">Rewards</a>
         <a href="/import">Import</a>
       </nav>
       <span class="points">{{ user.total_points }} pts</span>
@@ -98,6 +99,47 @@
         </p>
       </div>
     {% endif %}
+  </div>
+
+
+  <div class="card">
+    <h2>Watch / Nearly done</h2>
+    <p class="muted">Pinned Steps and open Tasks plus auto Nearly done Steps (last incomplete in a Phase, or Phase ≥ 80%). Max 6. Stays below Due now and Active Epic (R7.1).</p>
+    {% if not watch_rows %}
+      <p class="empty">Nothing on Watch yet. Pin a Step from an Epic or an open Task, or finish enough of a Phase to surface Nearly done.</p>
+    {% endif %}
+    {% for w in watch_rows %}
+      <div class="item">
+        <div>
+          <h3>
+            {% if w.source == "pinned" %}<span class="badge silver">Pinned</span>{% else %}<span class="badge bronze">Nearly done</span>{% endif %}
+            <span class="prio p{{ w.priority }}">P{{ w.priority }}</span>
+            {% if w.href %}<a href="{{ w.href }}">{{ w.title }}</a>{% else %}{{ w.title }}{% endif %}
+          </h3>
+          <div class="meta">{{ w.meta }}</div>
+        </div>
+        <div style="display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center">
+          {% if w.source == "pinned" %}
+            <form method="post" action="/watch/unpin">
+              <input type="hidden" name="kind" value="{{ w.kind }}" />
+              <input type="hidden" name="ref_id" value="{{ w.ref_id }}" />
+              <input type="hidden" name="next" value="/today" />
+              <button class="ghost" type="submit">Unpin</button>
+            </form>
+          {% else %}
+            <form method="post" action="/watch/pin">
+              <input type="hidden" name="kind" value="{{ w.kind }}" />
+              <input type="hidden" name="ref_id" value="{{ w.ref_id }}" />
+              <input type="hidden" name="next" value="/today" />
+              <button class="ghost" type="submit">Pin</button>
+            </form>
+          {% endif %}
+          {% if w.complete_action %}
+            <form method="post" action="{{ w.complete_action }}"><button type="submit">Complete</button></form>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
   </div>
 
   <div class="card">
@@ -208,14 +250,31 @@
               <h3><span class="prio p{{ t.priority }}">P{{ t.priority }}</span>{{ t.title }}</h3>
               <div class="meta">{% if t.due_date %}due {{ t.due_date.isoformat() }}{% else %}no due date{% endif %}</div>
             </div>
-            <form method="post" action="/tasks/{{ t.id }}/complete"><button type="submit">Done</button></form>
+            <div style="display:flex;gap:0.4rem;flex-wrap:wrap">
+              {% if ("task", t.id) in pinned_refs %}
+                <form method="post" action="/watch/unpin">
+                  <input type="hidden" name="kind" value="task" />
+                  <input type="hidden" name="ref_id" value="{{ t.id }}" />
+                  <input type="hidden" name="next" value="/today" />
+                  <button class="ghost" type="submit">Unpin</button>
+                </form>
+              {% else %}
+                <form method="post" action="/watch/pin">
+                  <input type="hidden" name="kind" value="task" />
+                  <input type="hidden" name="ref_id" value="{{ t.id }}" />
+                  <input type="hidden" name="next" value="/today" />
+                  <button class="ghost" type="submit">Pin</button>
+                </form>
+              {% endif %}
+              <form method="post" action="/tasks/{{ t.id }}/complete"><button type="submit">Done</button></form>
+            </div>
           </div>
         {% endfor %}
       </div>
 
       <div class="card">
         <h2>Recent rewards</h2>
-        <p class="muted">Fixed tiers: Bronze 10 · Silver 25 · Gold 50 (by priority). Phase +75 · Epic +150.</p>
+        <p class="muted">Fixed tiers: Bronze 10 · Silver 25 · Gold 50 (by priority). Phase +75 · Epic +150. <a href="/rewards">Full history</a></p>
         {% if not recent_rewards %}
           <p class="empty">Complete something to earn a standardized reward.</p>
         {% endif %}

@@ -63,6 +63,10 @@ Multi-user, cloud sync, mobile apps, OAuth / IdP, custom reward economies, Jira/
 |---------|--------|
 | **v0.1** | Auth, Tasks, Routines, Today / Due now, Priority rewards, Docker |
 | **v0.2** | Epic → Phase → Step, Active Epic on Today, Period bonuses, soft miss, preview + Phase deliverable fields, docs refresh |
-| **v0.3** | Parked Epics UX polish, LLM ingest New/Update, Full vs Focused Epic paths, reward history, watch list / nearly-done, life-mode filters, follow-on Epic |
+| **v0.3** | Parked Epics UX polish, LLM ingest New/Update |
+| **v0.3.1** | Reward history (`/rewards`); Today Watch / Nearly done (max 6 pinned + auto) |
+| **Later** | Full vs Focused Epic paths, life-mode filters, follow-on Epic |
+
+Also: **Watch / Nearly done** never outranks Due now or Active Epic on Today (R7.1). Pins store Steps and open Tasks only.
 
 PO owns product decisions and naming. Client provides vision only.
