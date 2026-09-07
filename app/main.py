@@ -24,13 +24,18 @@ from app.config import SECURE_COOKIES, SESSION_MAX_AGE
 from app.database import get_db, init_db
 from app.ingest import IngestError, apply_ingest
 from app.epics_logic import (
+    PATH_FOCUSED,
+    PATH_FULL,
     complete_step,
     current_phase,
     epic_progress,
     next_step,
+    normalize_path,
     phase_progress,
+    switch_epic_path,
 )
 from app.models import Epic, Phase, RewardLog, Routine, Step, Task, User
+from app.path_routes import apply_path_switch
 from app.period_bonuses import (
     ensure_default_period_bonuses,
     period_bonus_snapshot,
@@ -488,6 +493,7 @@ def create_epic(
     preview_label: str = Form(""),
     legendary: str = Form("on"),
     parent_epic_id: str = Form(""),
+    path: str = Form("full"),
     phase_titles: list[str] = Form(...),
     phase_steps: list[str] = Form(...),
     phase_deliverables: list[str] = Form([]),
@@ -497,6 +503,10 @@ def create_epic(
     title = title.strip()
     if not title:
         raise HTTPException(status_code=400, detail="Epic title is required.")
+    try:
+        epic_path = normalize_path(path)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from None
 
     # Pair titles with steps; drop empty trailing slots
     phases_data: list[tuple[str, list[str], str | None]] = []
@@ -543,6 +553,7 @@ def create_epic(
         identity_end=identity_end.strip() or None,
         capability_end=capability_end.strip() or None,
         preview_label=preview_label.strip() or None,
+        path=epic_path,
     )
     db.add(epic)
     db.flush()
@@ -567,7 +578,8 @@ def create_epic(
     if not user.active_epic_id:
         user.active_epic_id = epic.id
     db.commit()
-    return _flash_redirect(f"/epics/{epic.id}", "Epic created")
+    label = "Focused" if epic_path == PATH_FOCUSED else "Full"
+    return _flash_redirect(f"/epics/{epic.id}", f"Epic created ({label} path)")
 
 
 @app.get("/epics/{epic_id}", response_class=HTMLResponse)
@@ -654,6 +666,20 @@ def park_epic(
         db.commit()
         return _flash_redirect(f"/epics/{epic.id}", f"Parked: {epic.title}")
     return _flash_redirect(f"/epics/{epic.id}", f"Already Parked: {epic.title}")
+
+@app.post("/epics/{epic_id}/path")
+def set_epic_path(
+    epic_id: int,
+    path: str = Form(...),
+    confirm_destructive: str = Form(""),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    epic = _load_epic(db, epic_id)
+    if not epic or epic.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Epic not found.")
+    return apply_path_switch(epic, path, confirm_destructive, db, _flash_redirect)
+
 
 @app.post("/epics/{epic_id}/parent")
 def set_epic_parent(

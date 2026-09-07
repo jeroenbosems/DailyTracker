@@ -25,19 +25,23 @@ Tester owns execution. PO owns the bar. Map fails to REQUIREMENTS.md IDs.
 - [x] R8.1–R8.4 — LLM ingest New/Update; destructive confirm; `/import`
 - [x] Docs + prior NFRs
 
-## v0.3.1 (current gate)
+## v0.3.1 (shipped)
+
+- [x] Reward history `/rewards`; Watch / Nearly done max 6; docs + NFRs
+
+## v0.3.2 (current gate)
 
 Must pass before merge:
 
-1. **Reward history** — `/rewards` lists `RewardLog` newest first (tier badge, points, reason, timestamp); read-only; nav link + link from Today “Recent rewards”; still no DIY economy (R3.4)
-2. **Watch / Nearly done (max 6)** — Today card **below** Due now + Active Epic, **above** Period bonuses (R7.1)
-   - Pinned Steps and open Tasks in `watch_items` (user_id, kind step|task, ref_id, created_at); unique (user, kind, ref); hard cap **6** with clear error when full
-   - Auto Nearly done fills remaining slots: incomplete Steps that are (a) last incomplete in Phase, or (b) Phase progress ≥ 80%; Active Epic first; dedupe vs pins; drop completed refs from display (clean pins on complete when easy)
-   - UI: pinned vs auto badge; unpin/pin on Epic detail Steps and Open tasks where cheap
-3. **Docs** — this gate checklist; brief PRODUCT/DECISIONS note
-4. **R2.*** / **R1.*** / **R7.1** — prior NFRs still hold
+1. **Epic.path** — `full` | `focused` (default full) on create form + LLM ingest
+2. **Phase.parked** — Full→Focused prefers parking non-focused Phases (keep first 2); `confirm_destructive` only to remove **incomplete** extras; never silent wipe of completed work
+3. **Focused→Full** — unpark all; add missing Phases/Steps toward fuller structure without wiping progress
+4. **Today / next Step / Nearly done** — ignore parked Phases
+5. **UI** — Full/Focused badge; explicit switch control + clear flash messages; no silent loss
+6. **Docs** — this gate; brief PRODUCT/DECISIONS note
+7. **R2.*** / **R1.*** / **R7.1** — prior NFRs still hold
 
-Out of scope for this gate: Full vs Focused Epic paths, life-mode filters, follow-on Epic.
+Out of scope for this gate: life-mode filters, reward shop, follow-on Epic.
 
 ## How to report
 

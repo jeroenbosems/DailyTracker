@@ -26,6 +26,7 @@ Users fill days with **useful** work, feel **progress** and fair **reward**, and
 | **Routine** | Recurring work (daily / weekly / monthly / yearly) | Recurring |
 | **Active Epic** | The Epic Today prioritizes | — |
 | **Parked Epic** | Epic kept without Today pressure; parking is not failure | — |
+| **Path** | Full (more Phases) or Focused (condensed; extras may be parked) | Epic |
 | **Today** | Daily board | Day |
 | **Due now** | Overdue + due today (+ routines due) | Day |
 | **Priority reward** | Fixed Gold / Silver / Bronze by priority 1 / 2 / 3 | On completion |
@@ -65,7 +66,8 @@ Multi-user, cloud sync, mobile apps, OAuth / IdP, custom reward economies, Jira/
 | **v0.2** | Epic → Phase → Step, Active Epic on Today, Period bonuses, soft miss, preview + Phase deliverable fields, docs refresh |
 | **v0.3** | Parked Epics UX polish, LLM ingest New/Update |
 | **v0.3.1** | Reward history (`/rewards`); Today Watch / Nearly done (max 6 pinned + auto) |
-| **Later** | Full vs Focused Epic paths, life-mode filters, follow-on Epic |
+| **v0.3.2** | Full vs Focused Epic paths (path + parked Phases); switch without silent loss |
+| **Later** | life-mode filters, follow-on Epic, reward shop |
 
 Also: **Watch / Nearly done** never outranks Due now or Active Epic on Today (R7.1). Pins store Steps and open Tasks only.
 

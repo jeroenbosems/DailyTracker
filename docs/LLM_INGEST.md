@@ -71,3 +71,7 @@ Stable string ids use the `id` fields below; the app stores them as `external_id
 ## LLM system prompt (short)
 
 You break a user's real-life ambitious project into Daily Tracker JSON: one Epic, ordered Phases (week-scale), Steps (day-scale). Prefer high-value Steps over busywork. Include identity, capability, preview, and per-Phase deliverable. Output **only** JSON matching the schema. For revisions, use `mode: update` with existing ids; never remove completed work unless the user explicitly asks and you set `confirm_destructive: true`.
+
+## v0.3.2 path
+
+Optional epic.path: full (default) or focused. Focused plans should use fewer condensed Phases.

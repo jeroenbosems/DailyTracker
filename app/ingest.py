@@ -8,6 +8,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
+from app.epics_logic import PATH_FULL, normalize_path
 from app.models import Epic, Phase, Step, User
 
 
@@ -66,6 +67,14 @@ def validate_ingest(data: dict[str, Any]) -> dict[str, Any]:
         status = status.strip().lower()
         if status not in {"active", "parked"}:
             raise IngestError('epic.status must be "active" or "parked" when set.')
+
+    path_raw = epic.get("path", PATH_FULL)
+    if path_raw is not None and not isinstance(path_raw, str):
+        raise IngestError("epic.path must be a string when present.")
+    try:
+        epic_path = normalize_path(path_raw if path_raw is not None else PATH_FULL)
+    except ValueError as exc:
+        raise IngestError(str(exc)) from None
 
     phases_raw = epic.get("phases")
     if not isinstance(phases_raw, list) or not phases_raw:
@@ -162,6 +171,7 @@ def validate_ingest(data: dict[str, Any]) -> dict[str, Any]:
             "capability": (capability or "").strip() or None if isinstance(capability, str) else None,
             "preview": (preview or "").strip() or None if isinstance(preview, str) else None,
             "status": status,
+            "path": epic_path,
             "phases": phases,
         },
     }
@@ -197,6 +207,7 @@ def _apply_new(db: Session, user: User, payload: dict[str, Any]) -> str:
         identity_end=epic_data["identity"],
         capability_end=epic_data["capability"],
         preview_label=epic_data["preview"],
+        path=epic_data.get("path") or PATH_FULL,
         legendary=True,
     )
     db.add(epic)
@@ -236,7 +247,8 @@ def _apply_new(db: Session, user: User, payload: dict[str, Any]) -> str:
 
     db.flush()
     status_note = "Active" if user.active_epic_id == epic.id else "Parked"
-    return f"Imported new Epic “{epic.title}” ({status_note}) with {len(epic_data['phases'])} Phase(s)."
+    path_label = "Focused" if epic.path == "focused" else "Full"
+    return f"Imported new Epic “{epic.title}” ({status_note}, {path_label}) with {len(epic_data['phases'])} Phase(s)."
 
 
 def _apply_update(
@@ -305,6 +317,9 @@ def _apply_update(
         epic.capability_end = epic_data["capability"]
     if epic_data["preview"] is not None:
         epic.preview_label = epic_data["preview"]
+
+    if epic_data.get("path"):
+        epic.path = epic_data["path"]
 
     if epic_data["status"] == "active":
         user.active_epic_id = epic.id

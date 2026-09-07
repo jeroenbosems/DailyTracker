@@ -195,6 +195,8 @@ def nearly_done_candidates(db: Session, user: User, exclude: set[tuple[str, int]
     seen: set[int] = set()
     for epic in ordered:
         for phase in sorted(epic.phases, key=lambda p: p.sort_order):
+            if getattr(phase, "parked", False):
+                continue
             for step in sorted(phase.steps, key=lambda s: (s.sort_order, s.id)):
                 if step.completed or step.id in seen:
                     continue

@@ -3,7 +3,7 @@
 Normative. **MUST** / **SHOULD** / **MAY**.  
 If this file conflicts with chat, **this file wins** after merge to `main`.
 
-Version tags: `[v0.1]` shipped · `[v0.2]` shipped · `[v0.3]` shipped · `[v0.3.1]` in progress
+Version tags: `[v0.1]` shipped · `[v0.2]` shipped · `[v0.3]` shipped · `[v0.3.1]` shipped · `[v0.3.2]` in progress
 
 ---
 
@@ -62,6 +62,7 @@ Version tags: `[v0.1]` shipped · `[v0.2]` shipped · `[v0.3]` shipped · `[v0.3
 | R5.10 | MUST celebrate completions at Step < Phase < Epic scale (distinct feedback) | v0.2 |
 | R5.11 | MUST allow exactly one Active Epic for Today focus | v0.2 |
 | R5.12 | SHOULD support Parked Epics without punishing the user | v0.2 / polish v0.3 |
+| R5.13 | SHOULD support Full vs Focused Epic paths; switches must not silently wipe progress | v0.3.2 |
 
 ## R6 — Soft miss & Period bonuses
 
