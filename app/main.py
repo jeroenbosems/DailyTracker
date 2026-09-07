@@ -24,6 +24,7 @@ from app.config import SECURE_COOKIES, SESSION_MAX_AGE
 from app.database import get_db, init_db
 from app.ingest import IngestError, apply_ingest
 from app.epics_logic import (
+    FOCUSED_KEEP_PHASES,
     PATH_FOCUSED,
     PATH_FULL,
     complete_step,
@@ -577,6 +578,16 @@ def create_epic(
             )
     if not user.active_epic_id:
         user.active_epic_id = epic.id
+
+    # Focused create: auto-park Phases beyond the condensed set (no re-apply needed)
+    if epic_path == PATH_FOCUSED:
+        from app.epics_logic import FOCUSED_KEEP_PHASES
+
+        db.flush()
+        for phase in sorted(epic.phases, key=lambda ph: ph.sort_order):
+            if phase.sort_order >= FOCUSED_KEEP_PHASES:
+                phase.parked = True
+
     db.commit()
     label = "Focused" if epic_path == PATH_FOCUSED else "Full"
     return _flash_redirect(f"/epics/{epic.id}", f"Epic created ({label} path)")
