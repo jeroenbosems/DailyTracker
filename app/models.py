@@ -30,7 +30,7 @@ class User(Base):
         cascade="all, delete-orphan",
         foreign_keys="Epic.user_id",
     )
-    chest_progress: Mapped[list[ChestProgress]] = relationship(
+    period_bonus_progress: Mapped[list[PeriodBonusProgress]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
 
@@ -108,15 +108,15 @@ class Epic(Base):
     parent: Mapped[Epic | None] = relationship(
         remote_side=[id], foreign_keys=[parent_epic_id]
     )
-    acts: Mapped[list[Act]] = relationship(
-        back_populates="epic", cascade="all, delete-orphan", order_by="Act.sort_order"
+    phases: Mapped[list[Phase]] = relationship(
+        back_populates="epic", cascade="all, delete-orphan", order_by="Phase.sort_order"
     )
 
 
-class Act(Base):
-    """Week-scale Feature / chapter inside an Epic."""
+class Phase(Base):
+    """Week-scale chapter inside an Epic."""
 
-    __tablename__ = "acts"
+    __tablename__ = "phases"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     epic_id: Mapped[int] = mapped_column(ForeignKey("epics.id"), nullable=False)
@@ -126,19 +126,19 @@ class Act(Base):
     completed: Mapped[bool] = mapped_column(Boolean, default=False)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    epic: Mapped[Epic] = relationship(back_populates="acts")
-    bits: Mapped[list[Bit]] = relationship(
-        back_populates="act", cascade="all, delete-orphan", order_by="Bit.sort_order"
+    epic: Mapped[Epic] = relationship(back_populates="phases")
+    steps: Mapped[list[Step]] = relationship(
+        back_populates="phase", cascade="all, delete-orphan", order_by="Step.sort_order"
     )
 
 
-class Bit(Base):
-    """Day-scale Story / checklist item inside an Act."""
+class Step(Base):
+    """Day-scale next action inside a Phase."""
 
-    __tablename__ = "bits"
+    __tablename__ = "steps"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    act_id: Mapped[int] = mapped_column(ForeignKey("acts.id"), nullable=False)
+    phase_id: Mapped[int] = mapped_column(ForeignKey("phases.id"), nullable=False)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     parallel: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -148,13 +148,13 @@ class Bit(Base):
     completed: Mapped[bool] = mapped_column(Boolean, default=False)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    act: Mapped[Act] = relationship(back_populates="bits")
+    phase: Mapped[Phase] = relationship(back_populates="steps")
 
 
-class ChestDef(Base):
-    """Fixed N-of-M daily/weekly completion chest."""
+class PeriodBonusDef(Base):
+    """Fixed N-of-M daily/weekly period bonus definition."""
 
-    __tablename__ = "chest_defs"
+    __tablename__ = "period_bonus_defs"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
@@ -168,15 +168,17 @@ class ChestDef(Base):
     title: Mapped[str] = mapped_column(String(120), nullable=False)
 
 
-class ChestProgress(Base):
-    __tablename__ = "chest_progress"
+class PeriodBonusProgress(Base):
+    __tablename__ = "period_bonus_progress"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    chest_def_id: Mapped[int] = mapped_column(ForeignKey("chest_defs.id"), nullable=False)
+    period_bonus_def_id: Mapped[int] = mapped_column(
+        ForeignKey("period_bonus_defs.id"), nullable=False
+    )
     period_key: Mapped[str] = mapped_column(String(32), nullable=False)  # YYYY-MM-DD or YYYY-Www
     completions: Mapped[int] = mapped_column(Integer, default=0)
-    chest_granted: Mapped[bool] = mapped_column(Boolean, default=False)
+    bonus_granted: Mapped[bool] = mapped_column(Boolean, default=False)
     glory_granted: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    user: Mapped[User] = relationship(back_populates="chest_progress")
+    user: Mapped[User] = relationship(back_populates="period_bonus_progress")

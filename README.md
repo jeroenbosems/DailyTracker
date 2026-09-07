@@ -1,6 +1,6 @@
 # Daily Tracker
 
-Solo local task + routine tracker (daily / weekly / monthly / yearly) with GW2-style progress feedback: clear next step, streaks, and **fixed standardized rewards** (not DIY points).
+Solo local task + routine tracker (daily / weekly / monthly / yearly) with clear next-step progress, soft streaks, and **fixed standardized rewards** (not DIY points). Hierarchy: **Epic → Phase → Step** plus Period bonuses.
 
 Designed to run everywhere via Docker. One user, data on a named volume, no cloud identity, no outbound telemetry by default.
 

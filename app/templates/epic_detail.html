@@ -20,12 +20,12 @@
     <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:flex-start">
       <div>
         <h2 style="margin:0 0 0.35rem">
-          {% if is_active %}<span class="badge gold">Active</span>{% endif %}
+          {% if is_active %}<span class="badge gold">Active</span>{% elif not epic.completed %}<span class="badge silver">Parked</span>{% endif %}
           {% if epic.legendary %}<span class="badge silver">Legendary</span>{% endif %}
           {{ epic.title }}
         </h2>
         <p class="muted" style="margin:0">
-          Overall {{ "%.0f"|format(overall_pct) }}% · {{ epic_done }}/{{ epic_total }} stories
+          Overall {{ "%.0f"|format(overall_pct) }}% · {{ epic_done }}/{{ epic_total }} steps
           {% if epic.completed %} · completed{% endif %}
         </p>
         {% if epic.identity_end or epic.capability_end %}
@@ -50,63 +50,63 @@
       </div>
     </div>
     <div class="progress" style="margin-top:0.75rem"><div class="fill accent" style="width: {{ overall_pct }}%"></div></div>
-    {% if next_story %}
-      <div class="next-story" style="margin-top:0.85rem">
+    {% if next_step %}
+      <div class="next-step" style="margin-top:0.85rem">
         <div>
-          <div class="meta">Next Story</div>
-          <h3>{{ next_story.title }}</h3>
+          <div class="meta">Next Step</div>
+          <h3>{{ next_step.title }}</h3>
         </div>
-        <form method="post" action="/bits/{{ next_story.id }}/complete">
+        <form method="post" action="/steps/{{ next_step.id }}/complete">
           <button class="primary" type="submit">Complete</button>
         </form>
       </div>
     {% endif %}
   </div>
 
-  {% for row in acts_view %}
+  {% for row in phases_view %}
   <div class="card">
     <div style="display:flex;justify-content:space-between;gap:1rem">
       <h2 style="margin:0">
-        Act {{ loop.index }} · {{ row.act.title }}
-        {% if row.act.completed %}<span class="badge gold">Done</span>{% endif %}
+        Phase {{ loop.index }} · {{ row.phase.title }}
+        {% if row.phase.completed %}<span class="badge gold">Done</span>{% endif %}
       </h2>
       <span class="meta">{{ row.done }}/{{ row.total }} · {{ "%.0f"|format(row.pct) }}%</span>
     </div>
-    {% if row.act.deliverable %}
-      <p class="meta">Deliverable: {{ row.act.deliverable }}</p>
+    {% if row.phase.deliverable %}
+      <p class="meta">Deliverable: {{ row.phase.deliverable }}</p>
     {% endif %}
     <div class="progress" style="margin:0.5rem 0 0.75rem"><div class="fill" style="width: {{ row.pct }}%"></div></div>
 
-    {% for bit in row.bits %}
+    {% for step in row.steps %}
       <div class="item" style="flex-direction:column;align-items:stretch">
         <div style="display:flex;justify-content:space-between;gap:0.75rem;align-items:flex-start">
           <div>
             <h3>
-              {% if bit.completed %}<span class="badge gold">✓</span>{% else %}<span class="prio p{{ bit.priority }}">P{{ bit.priority }}</span>{% endif %}
-              {{ bit.title }}
+              {% if step.completed %}<span class="badge gold">✓</span>{% else %}<span class="prio p{{ step.priority }}">P{{ step.priority }}</span>{% endif %}
+              {{ step.title }}
             </h3>
             <div class="meta">
-              {% if bit.task_id %}Linked task #{{ bit.task_id }}{% endif %}
-              {% if bit.routine_id %}{% if bit.task_id %} · {% endif %}Linked routine #{{ bit.routine_id }}{% endif %}
-              {% if not bit.task_id and not bit.routine_id %}Standalone story{% endif %}
+              {% if step.task_id %}Linked task #{{ step.task_id }}{% endif %}
+              {% if step.routine_id %}{% if step.task_id %} · {% endif %}Linked routine #{{ step.routine_id }}{% endif %}
+              {% if not step.task_id and not step.routine_id %}Standalone step{% endif %}
             </div>
           </div>
-          {% if not bit.completed %}
-            <form method="post" action="/bits/{{ bit.id }}/complete"><button type="submit">Complete</button></form>
+          {% if not step.completed %}
+            <form method="post" action="/steps/{{ step.id }}/complete"><button type="submit">Complete</button></form>
           {% endif %}
         </div>
-        {% if not bit.completed %}
-          <form method="post" action="/bits/{{ bit.id }}/link" class="link-form">
+        {% if not step.completed %}
+          <form method="post" action="/steps/{{ step.id }}/link" class="link-form">
             <select name="task_id">
               <option value="">Link task…</option>
               {% for t in open_tasks %}
-                <option value="{{ t.id }}" {% if bit.task_id == t.id %}selected{% endif %}>{{ t.title }}</option>
+                <option value="{{ t.id }}" {% if step.task_id == t.id %}selected{% endif %}>{{ t.title }}</option>
               {% endfor %}
             </select>
             <select name="routine_id">
               <option value="">Link routine…</option>
               {% for r in routines %}
-                <option value="{{ r.id }}" {% if bit.routine_id == r.id %}selected{% endif %}>{{ r.title }}</option>
+                <option value="{{ r.id }}" {% if step.routine_id == r.id %}selected{% endif %}>{{ r.title }}</option>
               {% endfor %}
             </select>
             <button class="ghost" type="submit">Save link</button>

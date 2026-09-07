@@ -3,11 +3,22 @@ from datetime import date, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.chests import chest_snapshot, ensure_default_chests, period_key, record_completion
-from app.database import Base
-from app.epics_logic import act_progress, complete_bit, current_act, epic_progress, next_bit
-from app.models import Act, Bit, Epic, User
 from app.auth import hash_password
+from app.database import Base
+from app.epics_logic import (
+    complete_step,
+    current_phase,
+    epic_progress,
+    next_step,
+    phase_progress,
+)
+from app.models import Epic, Phase, Step, User
+from app.period_bonuses import (
+    ensure_default_period_bonuses,
+    period_bonus_snapshot,
+    period_key,
+    record_completion,
+)
 
 
 def _session() -> Session:
@@ -35,28 +46,28 @@ def _sample_epic(db: Session, user: User) -> Epic:
     )
     db.add(epic)
     db.flush()
-    act1 = Act(epic_id=epic.id, title="Pack", sort_order=0, deliverable="Boxes labeled")
-    act2 = Act(epic_id=epic.id, title="Move", sort_order=1, deliverable="Furniture placed")
-    db.add_all([act1, act2])
+    phase1 = Phase(epic_id=epic.id, title="Pack", sort_order=0, deliverable="Boxes labeled")
+    phase2 = Phase(epic_id=epic.id, title="Move", sort_order=1, deliverable="Furniture placed")
+    db.add_all([phase1, phase2])
     db.flush()
     db.add_all(
         [
-            Bit(act_id=act1.id, title="Pack kitchen", sort_order=0),
-            Bit(act_id=act1.id, title="Pack books", sort_order=1),
-            Bit(act_id=act2.id, title="Hire movers", sort_order=0),
-            Bit(act_id=act2.id, title="Unload truck", sort_order=1),
+            Step(phase_id=phase1.id, title="Pack kitchen", sort_order=0),
+            Step(phase_id=phase1.id, title="Pack books", sort_order=1),
+            Step(phase_id=phase2.id, title="Hire movers", sort_order=0),
+            Step(phase_id=phase2.id, title="Unload truck", sort_order=1),
         ]
     )
     db.commit()
     db.refresh(epic)
     # reload relationships
-    _ = epic.acts
-    for a in epic.acts:
-        _ = a.bits
+    _ = epic.phases
+    for p in epic.phases:
+        _ = p.steps
     return epic
 
 
-def test_epic_progress_and_next_bit_order():
+def test_epic_progress_and_next_step_order():
     db = _session()
     user = _user(db)
     epic = _sample_epic(db, user)
@@ -66,96 +77,96 @@ def test_epic_progress_and_next_bit_order():
     assert done == 0
     assert pct == 0.0
 
-    act = current_act(epic)
-    assert act is not None
-    assert act.title == "Pack"
-    bit = next_bit(epic)
-    assert bit is not None
-    assert bit.title == "Pack kitchen"
+    phase = current_phase(epic)
+    assert phase is not None
+    assert phase.title == "Pack"
+    step = next_step(epic)
+    assert step is not None
+    assert step.title == "Pack kitchen"
 
-    complete_bit(db, user, bit)
+    complete_step(db, user, step)
     db.commit()
     db.refresh(epic)
 
-    bit2 = next_bit(epic)
-    assert bit2 is not None
-    assert bit2.title == "Pack books"
+    step2 = next_step(epic)
+    assert step2 is not None
+    assert step2.title == "Pack books"
 
-    adone, atotal, apct = act_progress(act)
-    assert adone == 1 and atotal == 2 and apct == 50.0
+    pdone, ptotal, ppct = phase_progress(phase)
+    assert pdone == 1 and ptotal == 2 and ppct == 50.0
 
     done, total, pct = epic_progress(epic)
     assert done == 1 and total == 4 and pct == 25.0
     assert epic.preview_unlocked is True
 
 
-def test_complete_act_then_advance_to_next_act():
+def test_complete_phase_then_advance_to_next_phase():
     db = _session()
     user = _user(db)
     epic = _sample_epic(db, user)
 
-    # Finish first act
+    # Finish first phase
     for title in ("Pack kitchen", "Pack books"):
-        bit = next_bit(epic)
-        assert bit.title == title
-        complete_bit(db, user, bit)
+        step = next_step(epic)
+        assert step.title == title
+        complete_step(db, user, step)
         db.commit()
 
-    act = current_act(epic)
-    assert act is not None
-    assert act.title == "Move"
-    assert next_bit(epic).title == "Hire movers"
+    phase = current_phase(epic)
+    assert phase is not None
+    assert phase.title == "Move"
+    assert next_step(epic).title == "Hire movers"
 
     # Finish epic
-    while (b := next_bit(epic)) is not None:
-        complete_bit(db, user, b)
+    while (s := next_step(epic)) is not None:
+        complete_step(db, user, s)
         db.commit()
 
     assert epic.completed is True
-    assert current_act(epic) is None
-    assert next_bit(epic) is None
+    assert current_phase(epic) is None
+    assert next_step(epic) is None
     _, _, pct = epic_progress(epic)
     assert pct == 100.0
 
 
-def test_soft_chest_behavior_per_period():
+def test_soft_period_bonus_behavior_per_period():
     db = _session()
     user = _user(db)
-    ensure_default_chests(db, user)
+    ensure_default_period_bonuses(db, user)
 
     day1 = date(2026, 3, 10)
-    # Need 3 for daily bonus
+    # Need 3 for daily Period bonus
     flashes = []
     for _ in range(3):
         flashes.extend(record_completion(db, user, day1))
     db.commit()
-    assert any("Daily bonus" in f for f in flashes)
+    assert any("Daily Period bonus" in f for f in flashes)
 
-    snap = chest_snapshot(db, user, day1)
+    snap = period_bonus_snapshot(db, user, day1)
     daily = next(s for s in snap if s["period"] == "daily")
     assert daily["completions"] == 3
-    assert daily["chest_granted"] is True
+    assert daily["bonus_granted"] is True
     assert daily["glory_granted"] is False
 
     # Soft streak: a different day starts a fresh period key — prior progress untouched
     day2 = day1 + timedelta(days=1)
     assert period_key("daily", day1) != period_key("daily", day2)
-    snap2 = chest_snapshot(db, user, day2)
+    snap2 = period_bonus_snapshot(db, user, day2)
     daily2 = next(s for s in snap2 if s["period"] == "daily")
     assert daily2["completions"] == 0
-    assert daily2["chest_granted"] is False
+    assert daily2["bonus_granted"] is False
 
     # Prior day snapshot still granted
-    snap1_again = chest_snapshot(db, user, day1)
+    snap1_again = period_bonus_snapshot(db, user, day1)
     daily1_again = next(s for s in snap1_again if s["period"] == "daily")
     assert daily1_again["completions"] == 3
-    assert daily1_again["chest_granted"] is True
+    assert daily1_again["bonus_granted"] is True
 
     # Glory at max (5)
     for _ in range(2):
         record_completion(db, user, day1)
     db.commit()
-    snap_max = chest_snapshot(db, user, day1)
+    snap_max = period_bonus_snapshot(db, user, day1)
     daily_max = next(s for s in snap_max if s["period"] == "daily")
     assert daily_max["completions"] == 5
     assert daily_max["glory_granted"] is True
@@ -163,4 +174,4 @@ def test_soft_chest_behavior_per_period():
     # Further completions do not inflate past max
     record_completion(db, user, day1)
     db.commit()
-    assert chest_snapshot(db, user, day1)[0]["completions"] == 5
+    assert period_bonus_snapshot(db, user, day1)[0]["completions"] == 5

@@ -20,11 +20,21 @@ from app.auth import (
     read_session_token,
     verify_password,
 )
-from app.chests import chest_snapshot, ensure_default_chests, record_completion
 from app.config import SECURE_COOKIES, SESSION_MAX_AGE
 from app.database import get_db, init_db
-from app.epics_logic import act_progress, complete_bit, current_act, epic_progress, next_bit
-from app.models import Act, Bit, Epic, Routine, Task, User
+from app.epics_logic import (
+    complete_step,
+    current_phase,
+    epic_progress,
+    next_step,
+    phase_progress,
+)
+from app.models import Epic, Phase, Routine, Step, Task, User
+from app.period_bonuses import (
+    ensure_default_period_bonuses,
+    period_bonus_snapshot,
+    record_completion,
+)
 from app.rewards import grant_reward
 from app.routines_logic import CADENCES, advance_due, streak_continues
 
@@ -118,7 +128,7 @@ def _load_epic(db: Session, epic_id: int) -> Epic | None:
     return db.scalar(
         select(Epic)
         .where(Epic.id == epic_id)
-        .options(joinedload(Epic.acts).joinedload(Act.bits))
+        .options(joinedload(Epic.phases).joinedload(Phase.steps))
     )
 
 
@@ -179,7 +189,7 @@ def setup_post(
     db.add(user)
     db.commit()
     db.refresh(user)
-    ensure_default_chests(db, user)
+    ensure_default_period_bonuses(db, user)
     response = RedirectResponse("/today", status_code=303)
     _set_session_cookie(response, user.id)
     return response
@@ -208,7 +218,7 @@ def login_post(
             {"request": request, "error": "Invalid username or password."},
             status_code=401,
         )
-    ensure_default_chests(db, user)
+    ensure_default_period_bonuses(db, user)
     response = RedirectResponse("/today", status_code=303)
     _set_session_cookie(response, user.id)
     return response
@@ -237,16 +247,16 @@ def _due_now(user: User, today: date) -> tuple[list[Task], list[Routine]]:
 @app.get("/today", response_class=HTMLResponse)
 def today_view(request: Request, db: Session = Depends(get_db), user: User = Depends(require_user)):
     today = date.today()
-    ensure_default_chests(db, user)
+    ensure_default_period_bonuses(db, user)
     due_tasks, due_routines = _due_now(user, today)
     active = _active_epic(db, user)
-    next_story = next_bit(active) if active else None
-    act = current_act(active) if active else None
-    act_done = act_total = 0
-    act_pct = overall_pct = 0.0
+    next_step_item = next_step(active) if active else None
+    phase = current_phase(active) if active else None
+    phase_done = phase_total = 0
+    phase_pct = overall_pct = 0.0
     epic_done = epic_total = 0
-    if active and act:
-        act_done, act_total, act_pct = act_progress(act)
+    if active and phase:
+        phase_done, phase_total, phase_pct = phase_progress(phase)
     if active:
         epic_done, epic_total, overall_pct = epic_progress(active)
     return templates.TemplateResponse(
@@ -266,15 +276,15 @@ def today_view(request: Request, db: Session = Depends(get_db), user: User = Dep
             "flash": _read_flash(request),
             "cadences": CADENCES,
             "active_epic": active,
-            "next_story": next_story,
-            "current_act": act,
-            "act_done": act_done,
-            "act_total": act_total,
-            "act_pct": act_pct,
+            "next_step": next_step_item,
+            "current_phase": phase,
+            "phase_done": phase_done,
+            "phase_total": phase_total,
+            "phase_pct": phase_pct,
             "epic_done": epic_done,
             "epic_total": epic_total,
             "overall_pct": overall_pct,
-            "chests": chest_snapshot(db, user, today),
+            "period_bonuses": period_bonus_snapshot(db, user, today),
         },
     )
 
@@ -321,12 +331,13 @@ def complete_task(
         grant_reward(db, user, task.priority, f"Completed task: {task.title}")
         flashes.append("Task completed")
         flashes.extend(record_completion(db, user))
-        # Auto-complete linked stories
-        linked = db.scalars(select(Bit).where(Bit.task_id == task.id, Bit.completed.is_(False))).all()
-        for bit in linked:
-            # ensure act/epic loaded
-            _ = bit.act.epic
-            flashes.append(complete_bit(db, user, bit))
+        # Auto-complete linked steps
+        linked = db.scalars(
+            select(Step).where(Step.task_id == task.id, Step.completed.is_(False))
+        ).all()
+        for step in linked:
+            _ = step.phase.epic
+            flashes.append(complete_step(db, user, step))
         db.commit()
     return _flash_redirect("/today", " · ".join(flashes) if flashes else "Already completed")
 
@@ -392,17 +403,17 @@ def complete_routine(
     flashes = ["Routine completed"]
     flashes.extend(record_completion(db, user, today))
     linked = db.scalars(
-        select(Bit).where(Bit.routine_id == routine.id, Bit.completed.is_(False))
+        select(Step).where(Step.routine_id == routine.id, Step.completed.is_(False))
     ).all()
-    for bit in linked:
-        _ = bit.act.epic
-        flashes.append(complete_bit(db, user, bit))
+    for step in linked:
+        _ = step.phase.epic
+        flashes.append(complete_step(db, user, step))
     db.commit()
     return _flash_redirect("/today", " · ".join(flashes))
 
 
 # ---------------------------------------------------------------------------
-# Epics (v0.2)
+# Epics (v0.2) — hierarchy Epic → Phase → Step
 # ---------------------------------------------------------------------------
 
 
@@ -411,7 +422,7 @@ def epics_list(request: Request, db: Session = Depends(get_db), user: User = Dep
     epics = db.scalars(
         select(Epic)
         .where(Epic.user_id == user.id)
-        .options(joinedload(Epic.acts).joinedload(Act.bits))
+        .options(joinedload(Epic.phases).joinedload(Phase.steps))
         .order_by(Epic.created_at.desc())
     ).unique().all()
     rows = []
@@ -445,9 +456,9 @@ def create_epic(
     capability_end: str = Form(""),
     preview_label: str = Form(""),
     legendary: str = Form("on"),
-    act_titles: list[str] = Form(...),
-    act_bits: list[str] = Form(...),
-    act_deliverables: list[str] = Form([]),
+    phase_titles: list[str] = Form(...),
+    phase_steps: list[str] = Form(...),
+    phase_deliverables: list[str] = Form([]),
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
 ):
@@ -455,25 +466,31 @@ def create_epic(
     if not title:
         raise HTTPException(status_code=400, detail="Epic title is required.")
 
-    # Pair titles with bits; drop empty trailing slots
-    acts_data: list[tuple[str, list[str], str | None]] = []
-    for i, raw_title in enumerate(act_titles):
-        at = (raw_title or "").strip()
-        bits_raw = act_bits[i] if i < len(act_bits) else ""
-        bit_lines = [ln.strip() for ln in bits_raw.splitlines() if ln.strip()]
+    # Pair titles with steps; drop empty trailing slots
+    phases_data: list[tuple[str, list[str], str | None]] = []
+    for i, raw_title in enumerate(phase_titles):
+        pt = (raw_title or "").strip()
+        steps_raw = phase_steps[i] if i < len(phase_steps) else ""
+        step_lines = [ln.strip() for ln in steps_raw.splitlines() if ln.strip()]
         deliverable = None
-        if i < len(act_deliverables):
-            deliverable = (act_deliverables[i] or "").strip() or None
-        if not at and not bit_lines:
+        if i < len(phase_deliverables):
+            deliverable = (phase_deliverables[i] or "").strip() or None
+        if not pt and not step_lines:
             continue
-        if not at:
-            raise HTTPException(status_code=400, detail="Each Act needs a title.")
-        if not bit_lines:
-            raise HTTPException(status_code=400, detail=f"Act “{at}” needs at least one Story (newline-separated).")
-        acts_data.append((at, bit_lines, deliverable))
+        if not pt:
+            raise HTTPException(status_code=400, detail="Each Phase needs a title.")
+        if not step_lines:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Phase “{pt}” needs at least one Step (newline-separated).",
+            )
+        phases_data.append((pt, step_lines, deliverable))
 
-    if len(acts_data) < 2:
-        raise HTTPException(status_code=400, detail="An Epic needs at least 2 Acts, each with Stories.")
+    if len(phases_data) < 2:
+        raise HTTPException(
+            status_code=400,
+            detail="An Epic needs at least 2 Phases, each with Steps.",
+        )
 
     epic = Epic(
         user_id=user.id,
@@ -486,21 +503,21 @@ def create_epic(
     )
     db.add(epic)
     db.flush()
-    for sort_i, (at, bit_lines, deliverable) in enumerate(acts_data):
-        act = Act(
+    for sort_i, (pt, step_lines, deliverable) in enumerate(phases_data):
+        phase = Phase(
             epic_id=epic.id,
-            title=at,
+            title=pt,
             sort_order=sort_i,
             deliverable=deliverable,
         )
-        db.add(act)
+        db.add(phase)
         db.flush()
-        for bit_i, bit_title in enumerate(bit_lines):
+        for step_i, step_title in enumerate(step_lines):
             db.add(
-                Bit(
-                    act_id=act.id,
-                    title=bit_title,
-                    sort_order=bit_i,
+                Step(
+                    phase_id=phase.id,
+                    title=step_title,
+                    sort_order=step_i,
                     parallel=True,
                 )
             )
@@ -520,16 +537,16 @@ def epic_detail(
     epic = _load_epic(db, epic_id)
     if not epic or epic.user_id != user.id:
         raise HTTPException(status_code=404, detail="Epic not found.")
-    acts_view = []
-    for act in sorted(epic.acts, key=lambda a: a.sort_order):
-        done, total, pct = act_progress(act)
-        acts_view.append(
+    phases_view = []
+    for phase in sorted(epic.phases, key=lambda p: p.sort_order):
+        done, total, pct = phase_progress(phase)
+        phases_view.append(
             {
-                "act": act,
+                "phase": phase,
                 "done": done,
                 "total": total,
                 "pct": pct,
-                "bits": sorted(act.bits, key=lambda b: (b.sort_order, b.id)),
+                "steps": sorted(phase.steps, key=lambda s: (s.sort_order, s.id)),
             }
         )
     edone, etotal, epct = epic_progress(epic)
@@ -544,12 +561,12 @@ def epic_detail(
             "request": request,
             "user": user,
             "epic": epic,
-            "acts_view": acts_view,
+            "phases_view": phases_view,
             "epic_done": edone,
             "epic_total": etotal,
             "overall_pct": epct,
             "is_active": user.active_epic_id == epic.id,
-            "next_story": next_bit(epic),
+            "next_step": next_step(epic),
             "open_tasks": open_tasks,
             "routines": routines,
             "flash": _read_flash(request),
@@ -571,20 +588,20 @@ def activate_epic(
     return _flash_redirect("/today", f"Active Epic: {epic.title}")
 
 
-@app.post("/bits/{bit_id}/complete")
-def complete_bit_route(
-    bit_id: int,
+@app.post("/steps/{step_id}/complete")
+def complete_step_route(
+    step_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
 ):
-    bit = db.get(Bit, bit_id)
-    if not bit:
-        raise HTTPException(status_code=404, detail="Story not found.")
-    act = bit.act
-    epic = act.epic
+    step = db.get(Step, step_id)
+    if not step:
+        raise HTTPException(status_code=404, detail="Step not found.")
+    phase = step.phase
+    epic = phase.epic
     if epic.user_id != user.id:
-        raise HTTPException(status_code=404, detail="Story not found.")
-    msg = complete_bit(db, user, bit)
+        raise HTTPException(status_code=404, detail="Step not found.")
+    msg = complete_step(db, user, step)
     flashes = [msg]
     if "Already" not in msg:
         flashes.extend(record_completion(db, user))
@@ -592,20 +609,20 @@ def complete_bit_route(
     return _flash_redirect(f"/epics/{epic.id}", " · ".join(flashes))
 
 
-@app.post("/bits/{bit_id}/link")
-def link_bit(
-    bit_id: int,
+@app.post("/steps/{step_id}/link")
+def link_step(
+    step_id: int,
     task_id: str = Form(""),
     routine_id: str = Form(""),
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
 ):
-    bit = db.get(Bit, bit_id)
-    if not bit:
-        raise HTTPException(status_code=404, detail="Story not found.")
-    epic = bit.act.epic
+    step = db.get(Step, step_id)
+    if not step:
+        raise HTTPException(status_code=404, detail="Step not found.")
+    epic = step.phase.epic
     if epic.user_id != user.id:
-        raise HTTPException(status_code=404, detail="Story not found.")
+        raise HTTPException(status_code=404, detail="Step not found.")
 
     tid = int(task_id) if task_id.strip().isdigit() else None
     rid = int(routine_id) if routine_id.strip().isdigit() else None
@@ -613,18 +630,18 @@ def link_bit(
         task = db.get(Task, tid)
         if not task or task.user_id != user.id:
             raise HTTPException(status_code=400, detail="Invalid task.")
-        bit.task_id = tid
+        step.task_id = tid
     else:
-        bit.task_id = None
+        step.task_id = None
     if rid is not None:
         routine = db.get(Routine, rid)
         if not routine or routine.user_id != user.id:
             raise HTTPException(status_code=400, detail="Invalid routine.")
-        bit.routine_id = rid
+        step.routine_id = rid
     else:
-        bit.routine_id = None
+        step.routine_id = None
     db.commit()
-    return _flash_redirect(f"/epics/{epic.id}", "Story linked")
+    return _flash_redirect(f"/epics/{epic.id}", "Step linked")
 
 
 @app.get("/health")
