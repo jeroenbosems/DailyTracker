@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}Today · Daily Tracker{% endblock %}
+{% block body %}
+  <div class="topbar">
+    <div class="brand">Daily Tracker</div>
+    <div style="display:flex;gap:0.75rem;align-items:center">
+      <span class="points">{{ user.total_points }} pts</span>
+      <span class="muted">{{ user.username }}</span>
+      <form method="post" action="/logout"><button class="ghost" type="submit">Sign out</button></form>
+    </div>
+  </div>
+
+  {% if flash %}<div class="flash">{{ flash | replace('+', ' ') }}</div>{% endif %}
+
+  <div class="card">
+    <h2>Due now · {{ today.isoformat() }}</h2>
+    <p class="muted">Needed work first — priority + overdue/due today.</p>
+    {% if not due_tasks and not due_routines %}
+      <p class="empty">Nothing due right now. Nice — or add a high-priority task.</p>
+    {% endif %}
+    {% for t in due_tasks %}
+      <div class="item">
+        <div>
+          <h3><span class="prio p{{ t.priority }}">P{{ t.priority }}</span>{{ t.title }}</h3>
+          <div class="meta">Task{% if t.due_date %} · due {{ t.due_date.isoformat() }}{% else %} · no due date{% endif %}{% if t.notes %} · {{ t.notes }}{% endif %}</div>
+        </div>
+        <form method="post" action="/tasks/{{ t.id }}/complete"><button type="submit">Complete</button></form>
+      </div>
+    {% endfor %}
+    {% for r in due_routines %}
+      <div class="item">
+        <div>
+          <h3><span class="prio p{{ r.priority }}">P{{ r.priority }}</span>{{ r.title }}</h3>
+          <div class="meta">{{ r.cadence | capitalize }} routine · due {{ r.next_due_on.isoformat() }} · streak {{ r.streak }} (best {{ r.best_streak }}) · {{ r.completion_count }} done</div>
+        </div>
+        <form method="post" action="/routines/{{ r.id }}/complete"><button type="submit">Complete</button></form>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="grid grid-2">
+    <div class="stack">
+      <div class="card">
+        <h2>New task</h2>
+        <form method="post" action="/tasks">
+          <div class="row cols-3">
+            <div>
+              <label for="task_title">Title</label>
+              <input id="task_title" name="title" required />
+            </div>
+            <div>
+              <label for="task_priority">Priority</label>
+              <select id="task_priority" name="priority">
+                <option value="1">1 · highest (needed)</option>
+                <option value="2" selected>2 · normal</option>
+                <option value="3">3 · low</option>
+              </select>
+            </div>
+            <div>
+              <label for="task_due">Due date</label>
+              <input id="task_due" name="due_date" type="date" />
+            </div>
+          </div>
+          <label for="task_notes">Notes</label>
+          <textarea id="task_notes" name="notes"></textarea>
+          <p style="margin-top:0.75rem"><button class="primary" type="submit">Add task</button></p>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>New routine</h2>
+        <form method="post" action="/routines">
+          <div class="row cols-3">
+            <div>
+              <label for="routine_title">Title</label>
+              <input id="routine_title" name="title" required />
+            </div>
+            <div>
+              <label for="cadence">Cadence</label>
+              <select id="cadence" name="cadence">
+                {% for c in cadences %}<option value="{{ c }}">{{ c | capitalize }}</option>{% endfor %}
+              </select>
+            </div>
+            <div>
+              <label for="routine_priority">Priority</label>
+              <select id="routine_priority" name="priority">
+                <option value="1">1 · highest</option>
+                <option value="2" selected>2 · normal</option>
+                <option value="3">3 · low</option>
+              </select>
+            </div>
+          </div>
+          <label for="routine_notes">Notes</label>
+          <textarea id="routine_notes" name="notes"></textarea>
+          <p style="margin-top:0.75rem"><button class="primary" type="submit">Add routine</button></p>
+        </form>
+      </div>
+    </div>
+
+    <div class="stack">
+      <div class="card">
+        <h2>Progress</h2>
+        {% if not routines %}
+          <p class="empty">No routines yet — add a daily/weekly/monthly/yearly goal.</p>
+        {% endif %}
+        {% for r in routines %}
+          <div class="item">
+            <div>
+              <h3>{{ r.title }}</h3>
+              <div class="meta">{{ r.cadence }} · next {{ r.next_due_on.isoformat() }} · streak {{ r.streak }} / best {{ r.best_streak }} · {{ r.completion_count }} completions</div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="card">
+        <h2>Open tasks</h2>
+        {% if not open_tasks %}
+          <p class="empty">No open tasks.</p>
+        {% endif %}
+        {% for t in open_tasks %}
+          <div class="item">
+            <div>
+              <h3><span class="prio p{{ t.priority }}">P{{ t.priority }}</span>{{ t.title }}</h3>
+              <div class="meta">{% if t.due_date %}due {{ t.due_date.isoformat() }}{% else %}no due date{% endif %}</div>
+            </div>
+            <form method="post" action="/tasks/{{ t.id }}/complete"><button type="submit">Done</button></form>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="card">
+        <h2>Recent rewards</h2>
+        <p class="muted">Fixed tiers: Bronze 10 · Silver 25 · Gold 50 (by priority).</p>
+        {% if not recent_rewards %}
+          <p class="empty">Complete something to earn a standardized reward.</p>
+        {% endif %}
+        {% for rw in recent_rewards %}
+          <div class="item">
+            <div>
+              <h3><span class="badge {{ rw.tier }}">{{ rw.tier | capitalize }}</span> +{{ rw.points }}</h3>
+              <div class="meta">{{ rw.reason }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

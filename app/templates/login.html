@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Sign in · Daily Tracker{% endblock %}
+{% block body %}
+  <div class="auth-box card">
+    <h1>Sign in</h1>
+    <p class="muted">Local session only — no cloud identity.</p>
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    <form method="post" action="/login">
+      <label for="username">Username</label>
+      <input id="username" name="username" required autocomplete="username" />
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" required autocomplete="current-password" />
+      <p style="margin-top:1rem"><button class="primary" type="submit">Sign in</button></p>
+    </form>
+  </div>
+{% endblock %}

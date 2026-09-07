@@ -1,0 +1,15 @@
+services:
+  dailytracker:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - dailytracker_data:/data
+    environment:
+      - DATA_DIR=/data
+      # Optional: set SESSION_SECRET for stable sessions across restarts
+      # - SESSION_SECRET=change-me
+    restart: unless-stopped
+
+volumes:
+  dailytracker_data:
