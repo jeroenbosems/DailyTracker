@@ -23,6 +23,7 @@
       <div>
         <h2 style="margin:0 0 0.35rem">
           {% if is_active %}<span class="badge gold">Active</span>{% elif not epic.completed %}<span class="badge silver">Parked</span>{% endif %}
+          {% if epic.path == "focused" %}<span class="badge bronze">Focused</span>{% else %}<span class="badge silver">Full</span>{% endif %}
           {% if epic.legendary %}<span class="badge silver">Legendary</span>{% endif %}
           {{ epic.title }}
         </h2>
@@ -59,6 +60,7 @@
       </div>
     </div>
     <div class="progress" style="margin-top:0.75rem"><div class="fill accent" style="width: {{ overall_pct }}%"></div></div>
+    {% include "_path_switch.html" %}
     {% if next_step %}
       <div class="next-step" style="margin-top:0.85rem">
         <div>
@@ -96,6 +98,7 @@
     <div style="display:flex;justify-content:space-between;gap:1rem">
       <h2 style="margin:0">
         Phase {{ loop.index }} · {{ row.phase.title }}
+        {% if row.phase.parked %}<span class="badge silver">Parked phase</span>{% endif %}
         {% if row.phase.completed %}<span class="badge gold">Done</span>{% endif %}
       </h2>
       <span class="meta">{{ row.done }}/{{ row.total }} · {{ "%.0f"|format(row.pct) }}%</span>

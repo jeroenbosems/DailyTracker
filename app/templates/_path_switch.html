@@ -1,0 +1,30 @@
+    <div style="margin-top:0.75rem;padding:0.75rem;border-radius:10px;background:var(--panel-2)">
+      <h3 style="margin:0 0 0.4rem;font-size:0.95rem">Path · {% if epic.path == "focused" %}Focused{% else %}Full{% endif %}</h3>
+      <p class="meta" style="margin:0 0 0.5rem">No silent loss. Focused parks extra Phases; Full unparks and can add chapters. Removing incomplete extras needs an explicit confirm.</p>
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:flex-end">
+        {% if epic.path != "full" %}
+        <form method="post" action="/epics/{{ epic.id }}/path">
+          <input type="hidden" name="path" value="full" />
+          <button class="primary" type="submit">Switch to Full</button>
+        </form>
+        {% endif %}
+        {% if epic.path != "focused" %}
+        <form method="post" action="/epics/{{ epic.id }}/path">
+          <input type="hidden" name="path" value="focused" />
+          <button type="submit">Switch to Focused (park extras)</button>
+        </form>
+        <form method="post" action="/epics/{{ epic.id }}/path" onsubmit="return confirm('Remove incomplete extra Phases only? Completed work stays (parked), never wiped.');">
+          <input type="hidden" name="path" value="focused" />
+          <label class="check" style="display:inline-flex;gap:0.35rem;margin-right:0.5rem">
+            <input type="checkbox" name="confirm_destructive" /> Remove incomplete extras
+          </label>
+          <button class="ghost" type="submit">Focused + remove incomplete</button>
+        </form>
+        {% else %}
+        <form method="post" action="/epics/{{ epic.id }}/path">
+          <input type="hidden" name="path" value="focused" />
+          <button class="ghost" type="submit">Re-apply Focused park</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>

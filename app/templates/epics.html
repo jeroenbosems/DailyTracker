@@ -29,6 +29,7 @@
         <div style="flex:1">
           <h3>
             {% if row.active %}<span class="badge gold">Active</span>{% elif not row.epic.completed %}<span class="badge silver">Parked</span>{% endif %}
+            {% if row.epic.path == "focused" %}<span class="badge bronze">Focused</span>{% else %}<span class="badge silver">Full</span>{% endif %}
             {% if row.epic.legendary %}<span class="badge silver">Legendary</span>{% endif %}
             <a href="/epics/{{ row.epic.id }}">{{ row.epic.title }}</a>
             {% if row.epic.completed %}<span class="meta"> · done</span>{% endif %}
@@ -56,10 +57,17 @@
 
   <div class="card">
     <h2>New Epic</h2>
-    <p class="muted">Need ≥2 Phases. Steps are one per line inside each Phase. Prefer parallel Steps so a session can always advance.</p>
-    <form method="post" action="/epics">
+    <p class="muted">Full path suggests 3 Phases; Focused uses 2 condensed Phases. Steps are one per line. Prefer parallel Steps so a session can always advance.</p>
+    <form method="post" action="/epics" id="new-epic-form">
       <label for="epic_title">Title</label>
       <input id="epic_title" name="title" required placeholder="e.g. Move into the new apartment" />
+
+      <label for="epic_path">Path</label>
+      <select id="epic_path" name="path">
+        <option value="full" selected>Full (suggest 3 Phases)</option>
+        <option value="focused">Focused (2 condensed Phases)</option>
+      </select>
+      <p class="meta" id="path-hint">Full keeps room for a third chapter. Focused stays lean — you can expand later without wiping progress.</p>
 
       <div class="row cols-2">
         <div>
@@ -91,8 +99,8 @@
       </label>
 
       {% for i in [1, 2, 3] %}
-      <fieldset class="phase-block">
-        <legend>Phase {{ i }}{% if i <= 2 %} (required){% else %} (optional){% endif %}</legend>
+      <fieldset class="phase-block" id="phase-block-{{ i }}" {% if i == 3 %}data-full-only="1"{% endif %}>
+        <legend>Phase {{ i }}{% if i <= 2 %} (required){% else %} (Full path — suggested){% endif %}</legend>
         <label>Phase title</label>
         <input name="phase_titles" {% if i <= 2 %}required{% endif %} placeholder="Week-scale chapter" />
         <label>Steps (one per line)</label>
@@ -105,4 +113,21 @@
       <p style="margin-top:0.75rem"><button class="primary" type="submit">Create Epic</button></p>
     </form>
   </div>
+  <script>
+    (function () {
+      var sel = document.getElementById("epic_path");
+      var block3 = document.getElementById("phase-block-3");
+      var hint = document.getElementById("path-hint");
+      function refresh() {
+        var focused = sel.value === "focused";
+        if (block3) block3.style.display = focused ? "none" : "";
+        if (hint) {
+          hint.textContent = focused
+            ? "Focused: two condensed Phases. Switch to Full later to unpark/add chapters without wiping completed work."
+            : "Full: aim for three Phases when you can. Switching to Focused will park extras (not silent delete).";
+        }
+      }
+      if (sel) { sel.addEventListener("change", refresh); refresh(); }
+    })();
+  </script>
 {% endblock %}

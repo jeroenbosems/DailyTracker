@@ -105,6 +105,7 @@ class Epic(Base):
     capability_end: Mapped[str | None] = mapped_column(String(255), nullable=True)
     preview_label: Mapped[str | None] = mapped_column(String(255), nullable=True)
     preview_unlocked: Mapped[bool] = mapped_column(Boolean, default=False)
+    path: Mapped[str] = mapped_column(String(16), default="full")  # full | focused
     completed: Mapped[bool] = mapped_column(Boolean, default=False)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
@@ -134,6 +135,7 @@ class Phase(Base):
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     deliverable: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    parked: Mapped[bool] = mapped_column(Boolean, default=False)
     completed: Mapped[bool] = mapped_column(Boolean, default=False)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 

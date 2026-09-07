@@ -41,6 +41,8 @@ def _migrate_schema() -> None:
         ("epics", "external_id", "ALTER TABLE epics ADD COLUMN external_id VARCHAR(128)"),
         ("phases", "external_id", "ALTER TABLE phases ADD COLUMN external_id VARCHAR(128)"),
         ("steps", "external_id", "ALTER TABLE steps ADD COLUMN external_id VARCHAR(128)"),
+        ("epics", "path", "ALTER TABLE epics ADD COLUMN path VARCHAR(16) DEFAULT 'full'"),
+        ("phases", "parked", "ALTER TABLE phases ADD COLUMN parked BOOLEAN DEFAULT 0"),
     ]
     with engine.begin() as conn:
         for table, column, ddl in alterations:

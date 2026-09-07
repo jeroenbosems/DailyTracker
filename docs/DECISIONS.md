@@ -2,6 +2,12 @@
 
 Append-only. Newest first. Chat opinions do not count until recorded here and reflected in REQUIREMENTS.md / PRODUCT.md.
 
+## 2026-09-07 — v0.3.2 Full vs Focused Epics
+
+**Decision:** Epics have path full|focused. Focused parks extra Phases by default; explicit confirm only removes incomplete extras. Full unparks and may add Phases/Steps without wiping completed work. Today/next Step/Nearly done skip parked Phases.
+**Why:** Cleared v0.3.2 scope.
+**Affects:** ACCEPTANCE v0.3.2; PRODUCT roadmap
+
 ## 2026-09-07 — v0.3.1 Watch + reward history
 
 **Decision:** Ship read-only `/rewards` history and Today **Watch / Nearly done** (max 6: user pins + auto nearly-done Steps). Card stays below Due now / Active Epic. Full vs Focused paths remain out.  
