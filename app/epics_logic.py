@@ -55,7 +55,7 @@ def complete_step(db: Session, user: User, step: Step) -> str:
     if total and done == total and not phase.completed:
         phase.completed = True
         phase.completed_at = datetime.now(timezone.utc)
-        grant_fixed(db, user, "silver", 40, f"Phase complete: {phase.title}")
+        grant_fixed(db, user, "gold", 75, f"Phase complete: {phase.title}")
         flash_parts.append(f"Phase complete: {phase.title}")
         if phase.deliverable:
             flash_parts.append(f"Deliverable: {phase.deliverable}")
@@ -70,7 +70,7 @@ def complete_step(db: Session, user: User, step: Step) -> str:
     if all(p.completed for p in epic.phases) and epic.phases and not epic.completed:
         epic.completed = True
         epic.completed_at = datetime.now(timezone.utc)
-        grant_fixed(db, user, "gold", 100, f"Epic unlocked: {epic.title}")
+        grant_fixed(db, user, "gold", 150, f"Epic unlocked: {epic.title}")
         flash_parts.append(f"Epic unlocked: {epic.title}")
 
     return " · ".join(flash_parts)

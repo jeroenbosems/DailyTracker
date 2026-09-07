@@ -87,6 +87,25 @@
     </div>
   </div>
 
+  <div class="grid grid-2">
+      {% for c in period_bonuses %}
+        <div class="item" style="flex-direction:column;align-items:stretch">
+          <div style="display:flex;justify-content:space-between">
+            <h3>{{ c.title }}</h3>
+            <span class="meta">{{ c.period }}</span>
+          </div>
+          <div class="meta">{{ c.completions }}/{{ c.need }} to earn · optional extras at {{ c.max }}</div>
+          {% set fill = (100 * c.completions / c.max) if c.max else 0 %}
+          <div class="progress"><div class="fill" style="width: {{ fill if fill < 100 else 100 }}%"></div></div>
+          <div class="meta">
+            {% if c.bonus_granted %}Period bonus earned (+{{ c.reward_points }}){% else %}Not yet{% endif %}
+            {% if c.glory_granted %} · Extra earned{% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
   <div class="card">
     <h2>Due now · {{ today.isoformat() }}</h2>
     <p class="muted">Needed work first — priority + overdue/due today. Gamification never outranks this list.</p>
