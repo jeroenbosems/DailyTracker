@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, timezone
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -87,9 +87,13 @@ class Epic(Base):
     """Month-scale ambition goal (Legendary when flagged)."""
 
     __tablename__ = "epics"
+    __table_args__ = (
+        UniqueConstraint("user_id", "external_id", name="uq_epic_user_external_id"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    external_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     parent_epic_id: Mapped[int | None] = mapped_column(ForeignKey("epics.id"), nullable=True)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -117,9 +121,13 @@ class Phase(Base):
     """Week-scale chapter inside an Epic."""
 
     __tablename__ = "phases"
+    __table_args__ = (
+        UniqueConstraint("epic_id", "external_id", name="uq_phase_epic_external_id"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     epic_id: Mapped[int] = mapped_column(ForeignKey("epics.id"), nullable=False)
+    external_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     deliverable: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -136,9 +144,13 @@ class Step(Base):
     """Day-scale next action inside a Phase."""
 
     __tablename__ = "steps"
+    __table_args__ = (
+        UniqueConstraint("phase_id", "external_id", name="uq_step_phase_external_id"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     phase_id: Mapped[int] = mapped_column(ForeignKey("phases.id"), nullable=False)
+    external_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     parallel: Mapped[bool] = mapped_column(Boolean, default=True)

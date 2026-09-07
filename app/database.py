@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Generator
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from app.config import DATABASE_URL, ensure_data_dir
@@ -35,8 +35,26 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
+def _migrate_schema() -> None:
+    """Add v0.3 columns to existing SQLite DBs (create_all does not ALTER)."""
+    alterations = [
+        ("epics", "external_id", "ALTER TABLE epics ADD COLUMN external_id VARCHAR(128)"),
+        ("phases", "external_id", "ALTER TABLE phases ADD COLUMN external_id VARCHAR(128)"),
+        ("steps", "external_id", "ALTER TABLE steps ADD COLUMN external_id VARCHAR(128)"),
+    ]
+    with engine.begin() as conn:
+        for table, column, ddl in alterations:
+            try:
+                names = {row[1] for row in conn.execute(text(f"PRAGMA table_info({table})")).fetchall()}
+            except Exception:
+                continue
+            if column not in names:
+                conn.execute(text(ddl))
+
+
 def init_db() -> None:
     from app import models  # noqa: F401
 
     ensure_data_dir()
     Base.metadata.create_all(bind=engine)
+    _migrate_schema()

@@ -22,6 +22,7 @@ from app.auth import (
 )
 from app.config import SECURE_COOKIES, SESSION_MAX_AGE
 from app.database import get_db, init_db
+from app.ingest import IngestError, apply_ingest
 from app.epics_logic import (
     complete_step,
     current_phase,
@@ -259,6 +260,12 @@ def today_view(request: Request, db: Session = Depends(get_db), user: User = Dep
         phase_done, phase_total, phase_pct = phase_progress(phase)
     if active:
         epic_done, epic_total, overall_pct = epic_progress(active)
+    all_epics = db.scalars(select(Epic).where(Epic.user_id == user.id)).all()
+    parked_count = sum(
+        1
+        for e in all_epics
+        if not e.completed and e.id != user.active_epic_id
+    )
     return templates.TemplateResponse(
         "today.html",
         {
@@ -285,6 +292,7 @@ def today_view(request: Request, db: Session = Depends(get_db), user: User = Dep
             "epic_total": epic_total,
             "overall_pct": overall_pct,
             "period_bonuses": period_bonus_snapshot(db, user, today),
+            "parked_count": parked_count,
         },
     )
 
@@ -612,6 +620,22 @@ def activate_epic(
     return _flash_redirect("/today", f"Active Epic: {epic.title}")
 
 
+@app.post("/epics/{epic_id}/park")
+def park_epic(
+    epic_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    epic = db.get(Epic, epic_id)
+    if not epic or epic.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Epic not found.")
+    # Park clears Active only — never wipes progress, titles, or completions (R5.12)
+    if user.active_epic_id == epic.id:
+        user.active_epic_id = None
+        db.commit()
+        return _flash_redirect(f"/epics/{epic.id}", f"Parked: {epic.title}")
+    return _flash_redirect(f"/epics/{epic.id}", f"Already Parked: {epic.title}")
+
 @app.post("/epics/{epic_id}/parent")
 def set_epic_parent(
     epic_id: int,
@@ -701,6 +725,56 @@ def link_step(
         step.routine_id = None
     db.commit()
     return _flash_redirect(f"/epics/{epic.id}", "Step linked")
+
+
+
+# ---------------------------------------------------------------------------
+# LLM ingest (v0.3) — New / Update via JSON (R8.*)
+# ---------------------------------------------------------------------------
+
+
+@app.get("/import", response_class=HTMLResponse)
+def import_get(request: Request, db: Session = Depends(get_db), user: User = Depends(require_user)):
+    return templates.TemplateResponse(
+        "import.html",
+        {
+            "request": request,
+            "user": user,
+            "flash": _read_flash(request),
+            "error": None,
+            "json_text": "",
+            "confirm_destructive": False,
+        },
+    )
+
+
+@app.post("/import", response_class=HTMLResponse)
+def import_post(
+    request: Request,
+    json_text: str = Form(""),
+    confirm_destructive: str = Form(""),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    ui_confirm = confirm_destructive == "on"
+    try:
+        msg = apply_ingest(db, user, json_text, ui_confirm_destructive=ui_confirm)
+        db.commit()
+        return _flash_redirect("/import", msg)
+    except IngestError as exc:
+        db.rollback()
+        return templates.TemplateResponse(
+            "import.html",
+            {
+                "request": request,
+                "user": user,
+                "flash": None,
+                "error": exc.message,
+                "json_text": json_text,
+                "confirm_destructive": ui_confirm,
+            },
+            status_code=400,
+        )
 
 
 @app.get("/health")

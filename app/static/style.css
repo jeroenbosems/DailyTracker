@@ -138,3 +138,9 @@ a.btn {
 }
 a.btn.ghost { background: transparent; border: 1px solid #3a4f6a; color: var(--text); }
 a.btn.ghost:hover { text-decoration: none; border-color: var(--accent); }
+
+.json-paste { min-height: 280px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+.parked-summary { margin: 0 0 0.65rem; }
+.parked-summary a { color: var(--muted); font-weight: 600; }
+.parked-summary a:hover { color: var(--text); }
+

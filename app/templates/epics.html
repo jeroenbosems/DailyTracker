@@ -7,6 +7,7 @@
       <nav class="nav">
         <a href="/today">Today</a>
         <a href="/epics" class="active">Epics</a>
+        <a href="/import">Import</a>
       </nav>
       <span class="points">{{ user.total_points }} pts</span>
       <span class="muted">{{ user.username }}</span>
@@ -37,11 +38,17 @@
           </div>
           <div class="progress" style="margin-top:0.4rem"><div class="fill accent" style="width: {{ row.pct }}%"></div></div>
         </div>
-        {% if not row.active and not row.epic.completed %}
-          <form method="post" action="/epics/{{ row.epic.id }}/activate">
-            <button type="submit">Activate</button>
-          </form>
-        {% endif %}
+        <div style="display:flex;gap:0.4rem;flex-wrap:wrap">
+          {% if row.active and not row.epic.completed %}
+            <form method="post" action="/epics/{{ row.epic.id }}/park">
+              <button class="ghost" type="submit">Park</button>
+            </form>
+          {% elif not row.active and not row.epic.completed %}
+            <form method="post" action="/epics/{{ row.epic.id }}/activate">
+              <button type="submit">Activate</button>
+            </form>
+          {% endif %}
+        </div>
       </div>
     {% endfor %}
   </div>

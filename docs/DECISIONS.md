@@ -2,6 +2,12 @@
 
 Append-only. Newest first. Chat opinions do not count until recorded here and reflected in REQUIREMENTS.md / PRODUCT.md.
 
+## 2026-09-07 — v0.3 Park + LLM ingest gate
+
+**Decision:** Ship explicit Park (clears Active only; progress stays) and LLM JSON ingest New/Update with `external_id` matching; destructive removals need JSON + UI confirm. Full/Focused paths, reward history, and watch list stay out of this gate.  
+**Why:** Tester-cleared v0.3 scope; R5.12 polish + R8.* without silent progress wipe.  
+**Affects:** R5.12, R8.*, ACCEPTANCE v0.3
+
 ## 2026-09-07 — Docs are the contract
 
 **Decision:** Core requirements live in `docs/` (REQUIREMENTS, PRODUCT, ACCEPTANCE, DECISIONS). Chat is input only.  

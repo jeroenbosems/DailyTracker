@@ -7,6 +7,7 @@
       <nav class="nav">
         <a href="/today" class="active">Today</a>
         <a href="/epics">Epics</a>
+        <a href="/import">Import</a>
       </nav>
       <span class="points">{{ user.total_points }} pts</span>
       <span class="muted">{{ user.username }}</span>
@@ -44,8 +45,11 @@
 
   <div class="card">
     <h2>Active Epic</h2>
+    {% if parked_count and parked_count > 0 %}
+      <p class="muted parked-summary"><a href="/epics">Parked · {{ parked_count }}</a></p>
+    {% endif %}
     {% if not active_epic %}
-      <p class="empty">No active Epic. <a href="/epics">Create or activate one</a> so Today always has a next Step. Other Epics can stay Parked — no punishment.</p>
+      <p class="empty">No Active Epic. <a href="/epics">Activate one</a> for a next Step — or <a href="/import">Import</a> a plan.</p>
     {% else %}
       <div class="item" style="flex-direction:column;align-items:stretch">
         <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap">
@@ -87,6 +91,11 @@
         {% else %}
           <p class="empty">This Epic is complete — activate another or celebrate.</p>
         {% endif %}
+        <p style="margin-top:0.75rem">
+          <form method="post" action="/epics/{{ active_epic.id }}/park" style="display:inline">
+            <button class="ghost" type="submit">Park</button>
+          </form>
+        </p>
       </div>
     {% endif %}
   </div>

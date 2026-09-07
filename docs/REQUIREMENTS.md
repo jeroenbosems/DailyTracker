@@ -3,7 +3,7 @@
 Normative. **MUST** / **SHOULD** / **MAY**.  
 If this file conflicts with chat, **this file wins** after merge to `main`.
 
-Version tags: `[v0.1]` shipped · `[v0.2]` in progress · `[v0.3]` planned
+Version tags: `[v0.1]` shipped · `[v0.2]` shipped · `[v0.3]` in progress
 
 ---
 
