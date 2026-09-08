@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Start follow-on · Daily Tracker{% endblock %}
+{% block body %}
+  <div class="topbar">
+    <div class="brand">Daily Tracker</div>
+    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+      <nav class="nav">
+        <a href="/today">Today</a>
+        <a href="/epics" class="active">Epics</a>
+        <a href="/rewards">Rewards</a>
+        <a href="/shop">Shop</a>
+        <a href="/import">Import</a>
+      </nav>
+      <a class="points" href="/shop">{{ user.total_points }} pts</a>
+      <span class="muted">{{ user.username }}</span>
+      <form method="post" action="/logout"><button class="ghost" type="submit">Sign out</button></form>
+    </div>
+  </div>
+
+  {% if flash %}<div class="flash">{{ flash }}</div>{% endif %}
+
+  <div class="card">
+    <h2>Start follow-on</h2>
+    <p class="muted">
+      Creates a <strong>new</strong> Epic linked to completed
+      <a href="/epics/{{ source.id }}">{{ source.title }}</a>.
+      The completed Epic stays untouched.
+    </p>
+    <form method="post" action="/epics/{{ source.id }}/follow-on">
+      <div class="row">
+        <div>
+          <label for="title">Title</label>
+          <input id="title" name="title" required value="{{ prefill_title }}" />
+        </div>
+      </div>
+      <div class="row cols-2">
+        <div>
+          <label for="identity_end">Identity end state</label>
+          <input id="identity_end" name="identity_end" value="{{ prefill_identity }}" />
+        </div>
+        <div>
+          <label for="capability_end">Capability end state</label>
+          <input id="capability_end" name="capability_end" value="{{ prefill_capability }}" />
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="notes">Notes</label>
+          <textarea id="notes" name="notes" rows="2">{{ prefill_notes }}</textarea>
+        </div>
+      </div>
+      <div class="row cols-2">
+        <div>
+          <label for="path">Path</label>
+          <select id="path" name="path">
+            <option value="focused" selected>Focused</option>
+            <option value="full">Full</option>
+          </select>
+        </div>
+        <div>
+          <label>Life modes</label>
+          <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.35rem">
+            {% for m in life_modes %}
+              <label style="display:flex;gap:0.25rem;align-items:center;font-weight:normal">
+                <input type="checkbox" name="life_modes" value="{{ m }}" {% if m in prefill_modes %}checked{% endif %} />
+                {{ life_mode_labels.get(m, m) }}
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin-top:1.25rem">Starter Phases</h3>
+      <p class="muted">Edit before save. Default Stabilize / Improve (Focused).</p>
+      {% for row in phase_rows %}
+        <div class="row cols-2" style="margin-top:0.75rem">
+          <div>
+            <label>Phase {{ loop.index }} title</label>
+            <input name="phase_titles" value="{{ row.title }}" required />
+          </div>
+          <div>
+            <label>Steps (one per line)</label>
+            <textarea name="phase_steps" rows="4" required>{{ row.steps }}</textarea>
+          </div>
+        </div>
+      {% endfor %}
+
+      <div style="margin-top:1rem;display:flex;gap:0.5rem;flex-wrap:wrap">
+        <button class="primary" type="submit">Create follow-on</button>
+        <a class="btn ghost" href="/epics/{{ source.id }}">Cancel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}
