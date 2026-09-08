@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Weekly review · Daily Tracker{% endblock %}
+{% block body %}
+  <div class="topbar">
+    <div class="brand">Daily Tracker</div>
+    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+      <nav class="nav">
+        <a href="/today">Today</a>
+        <a href="/epics">Epics</a>
+        <a href="/rewards">Rewards</a>
+        <a href="/shop">Shop</a>
+        <a href="/review" class="active">Review</a>
+        <a href="/import">Import</a>
+        <a href="/settings">Settings</a>
+      </nav>
+      <a class="points" href="/shop">{{ user.total_points }} pts</a>
+      <span class="muted">{{ user.username }}</span>
+      <form method="post" action="/logout"><button class="ghost" type="submit">Sign out</button></form>
+    </div>
+  </div>
+
+  {% if flash %}<div class="flash">{{ flash }}</div>{% endif %}
+
+  <div class="card">
+    <h2>Weekly review</h2>
+    <p class="muted">Read-only snapshot for <strong>{{ review.week_label }}</strong> ({{ review.week_start }} → {{ review.week_end }}). No email or push.</p>
+    <p style="margin-top:0.75rem"><a class="btn primary" href="/today">Back to Today</a></p>
+  </div>
+
+  <div class="card">
+    <h2>Active Epic</h2>
+    {% if review.active_epic %}
+      <p>
+        <a href="/epics/{{ review.active_epic.id }}">{{ review.active_epic.title }}</a>
+        — {{ "%.0f"|format(review.active_pct) }}% ({{ review.active_done }}/{{ review.active_total }} steps)
+      </p>
+      <div class="progress" style="margin-top:0.5rem"><div class="fill accent" style="width: {{ review.active_pct }}%"></div></div>
+      {% if review.active_next %}
+        <p class="meta" style="margin-top:0.75rem">Next Step: <strong>{{ review.active_next.title }}</strong></p>
+      {% else %}
+        <p class="meta" style="margin-top:0.75rem">No next Step — Epic may be complete or Phases parked.</p>
+      {% endif %}
+    {% else %}
+      <p class="empty">No Active Epic this week.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Points this week</h2>
+    <p><strong>+{{ review.points_earned }}</strong> pts across {{ review.reward_count }} reward{{ "s" if review.reward_count != 1 else "" }}.</p>
+  </div>
+
+  <div class="card">
+    <h2>Period bonuses</h2>
+    {% for b in review.period_bonuses %}
+      <div class="item">
+        <div>
+          <h3>{{ b.title }}</h3>
+          <div class="meta">
+            {{ b.completions }}/{{ b.need }} (max {{ b.max }})
+            {% if b.bonus_granted %} · bonus granted{% else %} · bonus pending{% endif %}
+            {% if b.glory_granted %} · glory granted{% endif %}
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <p class="empty">No Period bonuses configured.</p>
+    {% endfor %}
+  </div>
+
+  <div class="card">
+    <h2>Completed this week</h2>
+    <h3 style="margin-top:0.5rem">Tasks ({{ review.tasks|length }})</h3>
+    {% if not review.tasks %}<p class="empty">None yet.</p>{% endif %}
+    {% for t in review.tasks %}
+      <div class="item"><div><h3>{{ t.title }}</h3></div></div>
+    {% endfor %}
+
+    <h3 style="margin-top:1rem">Routines ({{ review.routines|length }})</h3>
+    {% if not review.routines %}<p class="empty">None yet.</p>{% endif %}
+    {% for r in review.routines %}
+      <div class="item"><div><h3>{{ r.title }}</h3><div class="meta">{{ r.cadence }} · last {{ r.last_completed_on }}</div></div></div>
+    {% endfor %}
+
+    <h3 style="margin-top:1rem">Steps ({{ review.steps|length }})</h3>
+    {% if not review.steps %}<p class="empty">None yet.</p>{% endif %}
+    {% for s in review.steps %}
+      <div class="item"><div><h3>{{ s.title }}</h3></div></div>
+    {% endfor %}
+  </div>
+
+  <p style="margin:1.5rem 0"><a class="btn primary" href="/today">Back to Today</a></p>
+{% endblock %}
