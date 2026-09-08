@@ -155,7 +155,31 @@ def build_export(db: Session, user: User) -> dict[str, Any]:
             }
             for rd in redemptions
         ],
+        "watch_items": [],
     }
+
+    task_by_id = {t.id: t for t in tasks}
+    step_by_id: dict[int, Step] = {}
+    for e in epics:
+        for ph in e.phases:
+            for st in ph.steps:
+                step_by_id[st.id] = st
+    watches = list(db.scalars(select(WatchItem).where(WatchItem.user_id == user.id)).all())
+    for w in watches:
+        if w.kind == "task":
+            ref = task_by_id.get(w.ref_id)
+            if not ref or not ref.external_id:
+                continue
+            payload["watch_items"].append(
+                {"kind": "task", "ref_external_id": ref.external_id}
+            )
+        elif w.kind == "step":
+            ref = step_by_id.get(w.ref_id)
+            if not ref or not ref.external_id:
+                continue
+            payload["watch_items"].append(
+                {"kind": "step", "ref_external_id": ref.external_id}
+            )
 
     for e in sorted(epics, key=lambda x: x.id):
         parent_ext = None
@@ -487,6 +511,44 @@ def apply_restore(
         )
         db.add(row)
         existing_red[ext] = row
+
+    db.flush()
+
+    # --- watch pins (by kind + ref external_id) ---
+    task_by_ext = _index_by_ext(
+        list(db.scalars(select(Task).where(Task.user_id == user.id)).all())
+    )
+    step_by_ext: dict[str, Step] = {}
+    for st in db.scalars(
+        select(Step)
+        .join(Phase, Step.phase_id == Phase.id)
+        .join(Epic, Phase.epic_id == Epic.id)
+        .where(Epic.user_id == user.id)
+    ).all():
+        if st.external_id:
+            step_by_ext[st.external_id] = st
+
+    existing_watch = {
+        (w.kind, w.ref_id): w
+        for w in db.scalars(select(WatchItem).where(WatchItem.user_id == user.id)).all()
+    }
+    for blob in data.get("watch_items") or []:
+        kind = (blob.get("kind") or "").strip()
+        ref_ext = (blob.get("ref_external_id") or "").strip()
+        if kind not in {"task", "step"} or not ref_ext:
+            raise BackupError("Each watch_item needs kind (task|step) and ref_external_id.")
+        if kind == "task":
+            ref = task_by_ext.get(ref_ext)
+        else:
+            ref = step_by_ext.get(ref_ext)
+        if not ref:
+            continue  # skip dangling pins
+        key = (kind, ref.id)
+        if key in existing_watch:
+            continue
+        w = WatchItem(user_id=user.id, kind=kind, ref_id=ref.id)
+        db.add(w)
+        existing_watch[key] = w
 
     db.flush()
 

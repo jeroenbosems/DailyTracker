@@ -64,16 +64,20 @@ Multi-user, cloud sync, mobile apps, OAuth / IdP, custom reward economies, Jira/
 
 ## Roadmap
 
-| Version | Scope |
-|---------|--------|
-| **v0.1** | Auth, Tasks, Routines, Today / Due now, Priority rewards, Docker |
-| **v0.2** | Epic → Phase → Step, Active Epic on Today, Period bonuses, soft miss, preview + Phase deliverable fields, docs refresh |
-| **v0.3** | Parked Epics UX polish, LLM ingest New/Update |
-| **v0.3.1** | Reward history (`/rewards`); Today Watch / Nearly done (max 6 pinned + auto) |
-| **v0.3.2** | Full vs Focused Epic paths (path + parked Phases); switch without silent loss |
-| **v0.4** | Life-mode tags + Today filter chips; starter templates (mode:new ingest) |
-| **v0.5** | Fixed reward shop (`/shop`): catalog spend + redemption history + IRL toggle |
-| **Later** | follow-on Epic |
+| Version | Scope | Status |
+|---------|--------|--------|
+| **v0.1** | Auth, Tasks, Routines, Today / Due now, Priority rewards, Docker | Shipped |
+| **v0.2** | Epic → Phase → Step, Active Epic on Today, Period bonuses, soft miss, preview + Phase deliverable fields, docs refresh | Shipped |
+| **v0.3** | Parked Epics UX polish, LLM ingest New/Update | Shipped |
+| **v0.3.1** | Reward history (`/rewards`); Today Watch / Nearly done (max 6 pinned + auto) | Shipped |
+| **v0.3.2** | Full vs Focused Epic paths (path + parked Phases); switch without silent loss | Shipped |
+| **v0.4** | Life-mode tags + Today filter chips; starter templates (mode:new ingest) | Shipped |
+| **v0.5** | Fixed reward shop (`/shop`): catalog spend + redemption history + IRL toggle | Shipped |
+| **v0.5.1** | One-command Docker start scripts | Shipped |
+| **v0.6** | Follow-on Epic (`follows_epic_id`, Start follow-on CTA) | Shipped |
+| **v0.7** | Settings JSON export / restore (merge + replace-with-confirm) | Shipped |
+| **v0.8** | Watch pins in backup; empty-state CTAs; roadmap hygiene | Current |
+
 
 Also: **Watch / Nearly done** never outranks Due now or Active Epic on Today (R7.1). Pins store Steps and open Tasks only.
 
