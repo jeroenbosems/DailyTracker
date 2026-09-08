@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Settings · Daily Tracker{% endblock %}
+{% block body %}
+  <div class="topbar">
+    <div class="brand">Daily Tracker</div>
+    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+      <nav class="nav">
+        <a href="/today">Today</a>
+        <a href="/epics">Epics</a>
+        <a href="/rewards">Rewards</a>
+        <a href="/shop">Shop</a>
+        <a href="/import">Import</a>
+        <a href="/settings" class="active">Settings</a>
+      </nav>
+      <a class="points" href="/shop">{{ user.total_points }} pts</a>
+      <span class="muted">{{ user.username }}</span>
+      <form method="post" action="/logout"><button class="ghost" type="submit">Sign out</button></form>
+    </div>
+  </div>
+
+  {% if flash %}<div class="flash">{{ flash }}</div>{% endif %}
+  {% if error %}<div class="flash" style="border-color:#c44">{{ error }}</div>{% endif %}
+
+  <div class="card">
+    <h2>Export &amp; backup</h2>
+    <p class="muted">Download your data as JSON (no password hashes or session secrets). Local only — no cloud sync.</p>
+    <p style="margin-top:0.75rem">
+      <a class="btn primary" href="/settings/export.json">Download JSON export</a>
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Restore from backup</h2>
+    <p class="muted">
+      <strong>Merge</strong> creates missing items by <code>external_id</code> and never overwrites completed Steps.
+      <strong>Replace</strong> wipes your tracker data then imports — type <code>REPLACE</code> and check the box.
+    </p>
+    <form method="post" action="/settings/restore" enctype="multipart/form-data">
+      <div class="row">
+        <div>
+          <label for="backup_file">Backup JSON file</label>
+          <input id="backup_file" type="file" name="backup_file" accept="application/json,.json" required />
+        </div>
+      </div>
+      <div class="row cols-2">
+        <div>
+          <label for="mode">Mode</label>
+          <select id="mode" name="mode">
+            <option value="merge" selected>Merge (create missing only)</option>
+            <option value="replace">Replace (wipe then import)</option>
+          </select>
+        </div>
+        <div>
+          <label for="replace_confirm_text">Replace confirm (type REPLACE)</label>
+          <input id="replace_confirm_text" name="replace_confirm_text" placeholder="REPLACE" autocomplete="off" />
+        </div>
+      </div>
+      <label style="display:flex;gap:0.4rem;align-items:center;margin-top:0.75rem;font-weight:normal">
+        <input type="checkbox" name="replace_confirm" value="on" />
+        I understand replace wipes existing Tasks / Routines / Epics / rewards / redemptions
+      </label>
+      <div style="margin-top:1rem">
+        <button class="primary" type="submit">Restore</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

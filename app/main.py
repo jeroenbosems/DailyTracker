@@ -4,15 +4,21 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from urllib.parse import quote, unquote
 
-from fastapi import Depends, FastAPI, Form, HTTPException, Request
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.exception_handlers import http_exception_handler
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.backup import (
+    REPLACE_CONFIRM_PHRASE,
+    BackupError,
+    apply_restore,
+    build_export,
+)
 from app.auth import (
     SESSION_COOKIE,
     create_session_token,
@@ -1122,6 +1128,83 @@ def create_step(
     )
     db.commit()
     return _flash_redirect(f"/epics/{phase.epic_id}", "Step created")
+
+
+# ---------------------------------------------------------------------------
+# Settings — export / restore (v0.7)
+# ---------------------------------------------------------------------------
+
+
+@app.get("/settings", response_class=HTMLResponse)
+def settings_get(
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    return templates.TemplateResponse(
+        "settings.html",
+        {
+            "request": request,
+            "user": user,
+            "flash": _read_flash(request),
+            "error": None,
+            "replace_phrase": REPLACE_CONFIRM_PHRASE,
+        },
+    )
+
+
+@app.get("/settings/export.json")
+def settings_export(
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    payload = build_export(db, user)
+    db.commit()  # persist any newly minted external_ids
+    body = __import__("json").dumps(payload, indent=2)
+    return Response(
+        content=body,
+        media_type="application/json",
+        headers={
+            "Content-Disposition": 'attachment; filename="dailytracker-export.json"'
+        },
+    )
+
+
+@app.post("/settings/restore", response_class=HTMLResponse)
+async def settings_restore(
+    request: Request,
+    mode: str = Form("merge"),
+    replace_confirm_text: str = Form(""),
+    replace_confirm: str = Form(""),
+    backup_file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    raw = await backup_file.read()
+    try:
+        msg = apply_restore(
+            db,
+            user,
+            raw,
+            mode=mode,
+            replace_confirm_text=replace_confirm_text,
+            replace_confirm_checked=replace_confirm == "on",
+        )
+        db.commit()
+        return _flash_redirect("/settings", msg)
+    except BackupError as exc:
+        db.rollback()
+        return templates.TemplateResponse(
+            "settings.html",
+            {
+                "request": request,
+                "user": user,
+                "flash": None,
+                "error": exc.message,
+                "replace_phrase": REPLACE_CONFIRM_PHRASE,
+            },
+            status_code=400,
+        )
 
 
 # ---------------------------------------------------------------------------

@@ -61,7 +61,7 @@ Must pass before merge:
 Out of scope for this gate: RNG, user-defined rewards/prices, follow-on Epic.
 
 
-## v0.6 (current gate)
+## v0.6 (shipped)
 
 Must pass before promote `test` → `release`:
 
@@ -74,6 +74,19 @@ Must pass before promote `test` → `release`:
 7. **Prior NFRs** — R2.* / R1.* / R7.1 still hold
 
 Out of scope: auto-starting follow-ons; DIY reward changes.
+
+
+## v0.7 (current gate)
+
+Must pass before promote `test` → `release`:
+
+1. **Export** — authenticated GET from Settings downloads JSON with `schema_version`, `exported_at`, tasks, routines, epics(+phases+steps), reward_logs, redemptions; **no** password hashes / session secrets
+2. **Restore merge** — create missing by `external_id`; never overwrite completed Steps
+3. **Restore replace** — wipe user product data then import; requires typed `REPLACE` + checkbox
+4. **Schema** — reject unknown `schema_version`
+5. **UI** — Settings page only; no export/restore clutter on Today
+6. **Docs** — ACCEPTANCE/PRODUCT/DECISIONS (+ EXPORT_BACKUP.md)
+7. **Out** — cloud sync; auto-backup outside the Docker volume
 
 ## How to report
 

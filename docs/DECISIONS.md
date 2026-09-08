@@ -2,6 +2,12 @@
 
 Append-only. Newest first. Chat opinions do not count until recorded here and reflected in REQUIREMENTS.md / PRODUCT.md.
 
+## 2026-09-08 — v0.7 Export & backup
+
+**Decision:** Settings-only JSON export/restore. Export strips secrets. Restore modes: merge (create-missing by external_id; never overwrite completed Steps) and replace (wipe then import) with typed REPLACE + checkbox. Reject unknown schema_version. No cloud sync.
+**Why:** Locked v0.7; portable backup without silent wipe risk.
+**Affects:** ACCEPTANCE v0.7; PRODUCT; docs/EXPORT_BACKUP.md; GitFlow `feat/v0.7-export-backup` → dev
+
 ## 2026-09-08 — v0.6 Follow-on Epic
 
 **Decision:** When an Epic completes, offer explicit **Start follow-on** (detail + Today). Creates a **new** Epic with `follows_epic_id` → completed one; never mutates/wipes the completed Epic. Prefill title/identity/capability/life modes; default Focused with editable Stabilize/Improve starters. Bidirectional Follows / Follow-ons links.
