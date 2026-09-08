@@ -2,6 +2,12 @@
 
 Append-only. Newest first. Chat opinions do not count until recorded here and reflected in REQUIREMENTS.md / PRODUCT.md.
 
+## 2026-09-08 — v0.9 Weekly review
+
+**Decision:** Add read-only `/review` for the current ISO week (completions, Active Epic %, points, Period bonus status). Entry via nav + Today footer only; single CTA Back to Today. No email/push.
+**Why:** Light shippable stability slice toward a workable release.
+**Affects:** ACCEPTANCE v0.9; PRODUCT roadmap; `app/review.py`
+
 ## 2026-09-08 — v0.8 Polish (Watch export + empty CTAs)
 
 **Decision:** Include WatchItem pins in JSON export/restore; add one clear empty-state CTA on Today, Epics, and Shop; mark shipped roadmap slices in PRODUCT/ACCEPTANCE. No new game systems.
