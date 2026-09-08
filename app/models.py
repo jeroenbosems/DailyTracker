@@ -43,9 +43,13 @@ class User(Base):
 
 class Task(Base):
     __tablename__ = "tasks"
+    __table_args__ = (
+        UniqueConstraint("user_id", "external_id", name="uq_task_user_external_id"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    external_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     priority: Mapped[int] = mapped_column(Integer, default=2)
@@ -60,9 +64,13 @@ class Task(Base):
 
 class Routine(Base):
     __tablename__ = "routines"
+    __table_args__ = (
+        UniqueConstraint("user_id", "external_id", name="uq_routine_user_external_id"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    external_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     cadence: Mapped[str] = mapped_column(String(16), nullable=False)
@@ -80,9 +88,13 @@ class Routine(Base):
 
 class RewardLog(Base):
     __tablename__ = "reward_logs"
+    __table_args__ = (
+        UniqueConstraint("user_id", "external_id", name="uq_reward_user_external_id"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    external_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     tier: Mapped[str] = mapped_column(String(16), nullable=False)
     points: Mapped[int] = mapped_column(Integer, nullable=False)
     reason: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -230,9 +242,13 @@ class Redemption(Base):
     """Spend of fixed shop catalog points (v0.5)."""
 
     __tablename__ = "redemptions"
+    __table_args__ = (
+        UniqueConstraint("user_id", "external_id", name="uq_redemption_user_external_id"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    external_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     catalog_id: Mapped[str] = mapped_column(String(32), nullable=False)
     points_spent: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

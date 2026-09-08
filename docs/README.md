@@ -14,6 +14,7 @@
 | [templates/](./templates/) | Starter Epic JSON payloads (`mode:new`) for v0.4 |
 | [REWARD_SHOP.md](./REWARD_SHOP.md) | Fixed reward shop catalog + redeem rules (v0.5) |
 | [FOLLOW_ON.md](./FOLLOW_ON.md) | Follow-on Epic after completion (v0.6) |
+| [EXPORT_BACKUP.md](./EXPORT_BACKUP.md) | JSON export / restore (v0.7) |
 
 ## Process
 
