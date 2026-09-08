@@ -2,6 +2,12 @@
 
 Append-only. Newest first. Chat opinions do not count until recorded here and reflected in REQUIREMENTS.md / PRODUCT.md.
 
+## 2026-09-08 — v1.0-rc shippable cut
+
+**Decision:** After v0.9 on main, tag `v1.0-rc` once Tester smoke passes (fresh clone → start script → setup → template Epic → Step → redeem/export). README gets a Shippable RC section. Feature freeze to bugfixes only until v1.0 or reopen.
+**Why:** Client asked for a stable, workable, easily runnable release.
+**Affects:** README; release tagging; GitFlow freeze policy
+
 ## 2026-09-08 — v0.9 Weekly review
 
 **Decision:** Add read-only `/review` for the current ISO week (completions, Active Epic %, points, Period bonus status). Entry via nav + Today footer only; single CTA Back to Today. No email/push.

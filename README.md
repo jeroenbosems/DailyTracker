@@ -21,6 +21,23 @@ The script checks that Docker is running, starts the app with `compose up --buil
 3. Use **Due now** to see overdue / due-today work, ordered by priority (needed work first).
 4. Completing items grants Bronze / Silver / Gold rewards (10 / 25 / 50 pts by priority).
 
+
+## Shippable RC (`v1.0-rc`)
+
+Stable, workable cut for real use. Feature freeze to **bugfixes only** after the `v1.0-rc` tag until `v1.0` or reopen.
+
+**Run (only required path):**
+
+```bash
+./scripts/start.sh
+```
+
+Windows: `scripts/start.ps1`
+
+Checks Docker, runs `compose up --build -d`, prints http://localhost:8000. Open in VS Code → run start script. No extra config.
+
+**In this cut:** Epics → Phases → Steps, Park, Full/Focused, Follow-on, life modes, starter templates, LLM ingest, reward shop, export/backup, Watch/Nearly done, weekly review (`/review`), plus the start scripts above.
+
 ## Stack
 
 - FastAPI + Jinja2 thin UI (same image)
