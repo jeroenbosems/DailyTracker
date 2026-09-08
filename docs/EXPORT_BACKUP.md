@@ -3,7 +3,7 @@
 ## Export
 
 - Authenticated download from **Settings** → `GET /settings/export.json`
-- Payload: `schema_version` (currently `1`), `exported_at`, `user` (username, total_points, active_epic_external_id — **no** password_hash), `tasks`, `routines`, `epics` (nested phases/steps), `reward_logs`, `redemptions`
+- Payload: `schema_version` (currently `1`), `exported_at`, `user` (username, total_points, active_epic_external_id — **no** password_hash), `tasks`, `routines`, `epics` (nested phases/steps), `reward_logs`, `redemptions`, `watch_items` (kind + ref_external_id)
 - Entities get stable `external_id` values (minted on export if missing)
 
 ## Restore

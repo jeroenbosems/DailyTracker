@@ -2,6 +2,12 @@
 
 Append-only. Newest first. Chat opinions do not count until recorded here and reflected in REQUIREMENTS.md / PRODUCT.md.
 
+## 2026-09-08 — v0.8 Polish (Watch export + empty CTAs)
+
+**Decision:** Include WatchItem pins in JSON export/restore; add one clear empty-state CTA on Today, Epics, and Shop; mark shipped roadmap slices in PRODUCT/ACCEPTANCE. No new game systems.
+**Why:** Tester note on v0.7 + light polish before next feature slice.
+**Affects:** backup.py; Today/Epics/Shop templates; PRODUCT roadmap; ACCEPTANCE v0.8
+
 ## 2026-09-08 — v0.7 Export & backup
 
 **Decision:** Settings-only JSON export/restore. Export strips secrets. Restore modes: merge (create-missing by external_id; never overwrite completed Steps) and replace (wipe then import) with typed REPLACE + checkbox. Reject unknown schema_version. No cloud sync.
