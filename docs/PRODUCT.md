@@ -76,7 +76,8 @@ Multi-user, cloud sync, mobile apps, OAuth / IdP, custom reward economies, Jira/
 | **v0.5.1** | One-command Docker start scripts | Shipped |
 | **v0.6** | Follow-on Epic (`follows_epic_id`, Start follow-on CTA) | Shipped |
 | **v0.7** | Settings JSON export / restore (merge + replace-with-confirm) | Shipped |
-| **v0.8** | Watch pins in backup; empty-state CTAs; roadmap hygiene | Current |
+| **v0.8** | Watch pins in backup; empty-state CTAs; roadmap hygiene | Shipped |
+| **v0.9** | Weekly review (`/review`) read-only | Current |
 
 
 Also: **Watch / Nearly done** never outranks Due now or Active Epic on Today (R7.1). Pins store Steps and open Tasks only.
