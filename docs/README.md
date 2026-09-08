@@ -1,6 +1,6 @@
 # Documentation — source of truth
 
-**Chat is not requirements.** Product decisions are only authoritative when written here and merged to `main`.
+**Chat is not requirements.** Product decisions are only authoritative when written here and merged through GitFlow onto `main`.
 
 | Doc | Purpose |
 |-----|---------|
@@ -8,6 +8,7 @@
 | [PRODUCT.md](./PRODUCT.md) | Product vision, ontology, naming, roadmap |
 | [ACCEPTANCE.md](./ACCEPTANCE.md) | Tester gates per release |
 | [DECISIONS.md](./DECISIONS.md) | Decision log (what changed and why) |
+| [GITFLOW.md](./GITFLOW.md) | Long-lived `dev` / `test` / `release` / `main` branch flow |
 | [MOTIVATION.md](./MOTIVATION.md) | Design research / inspiration (non-normative) |
 | [LLM_INGEST.md](./LLM_INGEST.md) | AI-assisted Epic authoring contract (New vs Update) |
 | [templates/](./templates/) | Starter Epic JSON payloads (`mode:new`) for v0.4 |
@@ -16,6 +17,7 @@
 ## Process
 
 1. PO updates these docs when vision or scope changes.
-2. Developer implements against **REQUIREMENTS.md** + **ACCEPTANCE.md**, not group chat.
-3. Tester gates releases against **ACCEPTANCE.md**.
-4. If chat and docs disagree, **docs win** until PO revises docs.
+2. Developer implements against **REQUIREMENTS.md** + **ACCEPTANCE.md**, not group chat. Feature PRs target **`dev`**.
+3. Tester gates on **`test`** against **ACCEPTANCE.md** (see [GITFLOW.md](./GITFLOW.md)).
+4. Ship path: `dev` → `test` (CLEAR) → `release` → `main`.
+5. If chat and docs disagree, **docs win** until PO revises docs.
