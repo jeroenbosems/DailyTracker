@@ -2,6 +2,20 @@
 
 Append-only. Newest first. Chat opinions do not count until recorded here and reflected in REQUIREMENTS.md / PRODUCT.md.
 
+## 2026-09-08 — Long-lived GitFlow branches
+
+**Decision:** Use four long-lived branches — `main`, `release`, `test`, `dev` — plus short-lived `feat/*` / `fix/*` / `hotfix/*`.
+
+**Flow:**
+1. Developer cuts `feat/*` (or `fix/*`) from `dev` → PR into `dev`.
+2. When a slice is ready for acceptance, promote `dev` → `test` (PR). Tester gates against ACCEPTANCE on that PR / `test` tip.
+3. On **CLEAR**, promote `test` → `release` (PR). Stabilize only; no new scope.
+4. Ship: promote `release` → `main` (PR). `main` is what runs in production / real use.
+5. Hotfixes: `hotfix/*` from `main` → PR into `main`, then back-merge into `release` and `dev`.
+
+**Why:** Client asked for proper GitFlow visibility (`dev` / `test` / `release` / `main`); separates integration, acceptance, release candidate, and prod.
+**Affects:** Team process; replaces “feature PR merges straight to main” for product code.
+
 ## 2026-09-08 — v0.5 Fixed reward shop
 
 **Decision:** Ship a fixed reward catalog (code constant) and `/shop` redeem + history with `fulfilled_irl`. Underfunded redeem returns HTTP 400. Today only links pts to the shop — no shop section above Due now / Active Epic. No RNG or user-defined rewards/prices.
