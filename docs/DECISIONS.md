@@ -2,6 +2,12 @@
 
 Append-only. Newest first. Chat opinions do not count until recorded here and reflected in REQUIREMENTS.md / PRODUCT.md.
 
+## 2026-09-08 — v0.5 Fixed reward shop
+
+**Decision:** Ship a fixed reward catalog (code constant) and `/shop` redeem + history with `fulfilled_irl`. Underfunded redeem returns HTTP 400. Today only links pts to the shop — no shop section above Due now / Active Epic. No RNG or user-defined rewards/prices.
+**Why:** Cleared v0.5 scope; spend earned points on real breaks without DIY inflation (R3.4, R7.1).
+**Affects:** ACCEPTANCE v0.5; PRODUCT roadmap; docs/REWARD_SHOP.md
+
 ## 2026-09-07 — v0.4 Life modes + starter templates
 
 **Decision:** Optional life-mode tags (`work|health|home|learning`): single nullable on Task/Routine/Step; Epic multi as JSON `life_modes` default `[]`. Today filter chips (All + modes) hide/show within fixed section order; under a mode show tagged OR untagged. Starter templates under `docs/templates/` are `mode:new` ingest only — Start from template never mutates existing Epics. Reward shop stays out.

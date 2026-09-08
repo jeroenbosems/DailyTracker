@@ -43,19 +43,22 @@ Must pass before merge:
 
 Out of scope for this gate: life-mode filters, reward shop, follow-on Epic.
 
-## v0.4 (current gate)
+## v0.4 (shipped)
+
+- [x] Life modes + Today filter chips (section order fixed); starter templates; docs + NFRs
+
+## v0.5 (current gate)
 
 Must pass before merge:
 
-1. **Life modes** — enum `work|health|home|learning`; optional single `life_mode` on Task/Routine/Step; Epic multi-select as JSON text `life_modes` default `[]`
-2. **Today filter chips** — All + each mode; **never reorder** sections (Due now → Active Epic → Watch/Nearly done → Period bonuses); filter only hides/shows within lists
-3. **Filter rule** — under a mode: show tagged that mode **OR untagged**; All shows everything
-4. **Forms** — mode select on create task/routine/step/epic; epic multi checkbox
-5. **Starter templates** — `docs/templates/{side-it-project,move-house,apartment-redo}.json` valid `mode:new` payloads; “Start from template” on `/epics` and `/import` creates new only (never mutates existing)
-6. **Docs** — LLM_INGEST examples/links; PRODUCT + this gate bumped for v0.4
-7. **R2.*** / **R1.*** / **R7.1** — prior NFRs still hold
+1. **Fixed catalog** — code constant only (`break_15` 40, `snack` 80, `media_ep` 100, `hobby_hour` 150, `meal_out` 300, `half_day` 500); no UI DIY / user-defined prices
+2. **Data** — `redemptions` with `user_id`, `catalog_id`, `points_spent`, `created_at`, `fulfilled_irl`
+3. **Redeem** — if `total_points < cost` → HTTP 400 clear error; else subtract points + insert redemption
+4. **UI** — `/shop` catalog + redeem + history with “Done in real life” toggle; nav link; Today pts link to shop only — **never** a shop section above Due now / Active Epic
+5. **Docs** — ACCEPTANCE/PRODUCT + `docs/REWARD_SHOP.md` listing catalog; adult productivity copy
+6. **R2.*** / **R1.*** / **R7.1** / **R3.4** — prior NFRs still hold
 
-Out of scope for this gate: reward shop, follow-on Epic.
+Out of scope for this gate: RNG, user-defined rewards/prices, follow-on Epic.
 
 ## How to report
 

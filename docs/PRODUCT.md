@@ -32,6 +32,8 @@ Users fill days with **useful** work, feel **progress** and fair **reward**, and
 | **Priority reward** | Fixed Gold / Silver / Bronze by priority 1 / 2 / 3 | On completion |
 | **Period bonus** | N-of-M daily or weekly completion bonus (fixed; weekly > daily) | Day / week |
 | **Life mode** | Optional tag: work / health / home / learning — Today filter chips | Item / Epic |
+| **Reward shop** | Fixed catalog of real-life breaks/treats bought with earned points | Spend |
+| **Redemption** | Record of a shop spend; optional “Done in real life” flag | — |
 
 Do **not** use game-first UI copy (loot, chests, pets, HP). Game vocabulary may appear only in MOTIVATION.md as rationale.
 
@@ -43,6 +45,7 @@ Do **not** use game-first UI copy (loot, chests, pets, HP). Game vocabulary may 
 4. Hit N-of-M → **Period bonus** (enough is enough; extras optional).
 5. Finish Phase → intermediate real deliverable + celebration.
 6. Finish Epic → identity / capability outcome + optional follow-on Epic.
+7. Optionally spend points in the **Reward shop** on a fixed real-life treat (then mark Done in real life).
 
 ## Principles
 
@@ -50,7 +53,7 @@ Do **not** use game-first UI copy (loot, chests, pets, HP). Game vocabulary may 
 2. **Always a next Step** — never a blank “what now?”
 3. **Foot in the door** — Phases and intermediate deliverables; miss slows, never wipes.
 4. **Anti-burnout** — light daily CTA; weekly carries more weight; Parked Epics allowed; overhead stays low.
-5. **Fixed rewards** — no DIY point economies.
+5. **Fixed rewards** — no DIY point economies; shop catalog is designer-fixed too.
 6. **Adult productivity UI** — clear progress, not cartoon RPG.
 7. **Capture cheaper than thought** — especially via LLM ingest later.
 8. **Docs over chat** — this folder is the contract.
@@ -69,7 +72,8 @@ Multi-user, cloud sync, mobile apps, OAuth / IdP, custom reward economies, Jira/
 | **v0.3.1** | Reward history (`/rewards`); Today Watch / Nearly done (max 6 pinned + auto) |
 | **v0.3.2** | Full vs Focused Epic paths (path + parked Phases); switch without silent loss |
 | **v0.4** | Life-mode tags + Today filter chips; starter templates (mode:new ingest) |
-| **Later** | follow-on Epic, reward shop |
+| **v0.5** | Fixed reward shop (`/shop`): catalog spend + redemption history + IRL toggle |
+| **Later** | follow-on Epic |
 
 Also: **Watch / Nearly done** never outranks Due now or Active Epic on Today (R7.1). Pins store Steps and open Tasks only.
 

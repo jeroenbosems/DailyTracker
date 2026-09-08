@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Shop · Daily Tracker{% endblock %}
+{% block body %}
+  <div class="topbar">
+    <div class="brand">Daily Tracker</div>
+    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+      <nav class="nav">
+        <a href="/today">Today</a>
+        <a href="/epics">Epics</a>
+        <a href="/rewards">Rewards</a>
+        <a href="/shop" class="active">Shop</a>
+        <a href="/import">Import</a>
+      </nav>
+      <a class="points" href="/shop">{{ user.total_points }} pts</a>
+      <span class="muted">{{ user.username }}</span>
+      <form method="post" action="/logout"><button class="ghost" type="submit">Sign out</button></form>
+    </div>
+  </div>
+
+  {% if flash %}<div class="flash">{{ flash }}</div>{% endif %}
+
+  <div class="card">
+    <h2>Reward shop</h2>
+    <p class="muted">Spend earned points on a <strong>fixed</strong> catalog — real breaks and treats, not DIY prices. Earn points by completing Due now work and Active Epic Steps; redeem here when you’ve earned them.</p>
+    <p class="meta" style="margin-bottom:0.75rem">Balance: <strong>{{ user.total_points }}</strong> pts</p>
+    {% for item in catalog %}
+      <div class="item">
+        <div>
+          <h3>{{ item.label }}</h3>
+          <div class="meta">{{ item.cost }} pts · fixed catalog</div>
+        </div>
+        <form method="post" action="/shop/redeem">
+          <input type="hidden" name="catalog_id" value="{{ item.id }}" />
+          <button type="submit" {% if user.total_points < item.cost %}disabled title="Not enough points"{% endif %}>Redeem</button>
+        </form>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="card">
+    <h2>Redemption history</h2>
+    <p class="muted">Mark each reward “Done in real life” when you’ve actually taken the break or treat. Points are already spent at redeem time.</p>
+    {% if not history %}
+      <p class="empty">No redemptions yet — earn points, then redeem something small first.</p>
+    {% endif %}
+    {% for row in history %}
+      <div class="item">
+        <div>
+          <h3>{{ row.label }}</h3>
+          <div class="meta">
+            −{{ row.redemption.points_spent }} pts
+            {% if row.redemption.created_at %} · {{ row.redemption.created_at.strftime("%Y-%m-%d %H:%M") }} UTC{% endif %}
+            {% if row.redemption.fulfilled_irl %} · done in real life{% else %} · pending{% endif %}
+          </div>
+        </div>
+        <form method="post" action="/shop/redemptions/{{ row.redemption.id }}/fulfilled" style="display:flex;align-items:center;gap:0.5rem">
+          <label style="margin:0;display:flex;align-items:center;gap:0.35rem;color:var(--text)">
+            <input type="checkbox" name="fulfilled_irl" value="on" {% if row.redemption.fulfilled_irl %}checked{% endif %} onchange="this.form.submit()" />
+            Done in real life
+          </label>
+          <noscript><button type="submit" class="ghost">Save</button></noscript>
+        </form>
+      </div>
+    {% endfor %}
+  </div>
+{% endblock %}

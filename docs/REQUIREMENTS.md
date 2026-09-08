@@ -3,7 +3,7 @@
 Normative. **MUST** / **SHOULD** / **MAY**.  
 If this file conflicts with chat, **this file wins** after merge to `main`.
 
-Version tags: `[v0.1]` shipped · `[v0.2]` shipped · `[v0.3]` shipped · `[v0.3.1]` shipped · `[v0.3.2]` shipped · `[v0.4]` in progress
+Version tags: `[v0.1]` shipped · `[v0.2]` shipped · `[v0.3]` shipped · `[v0.3.1]` shipped · `[v0.3.2]` shipped · `[v0.4]` shipped · `[v0.5]` in progress
 
 ---
 
@@ -46,6 +46,7 @@ Version tags: `[v0.1]` shipped · `[v0.2]` shipped · `[v0.3]` shipped · `[v0.3
 | R4.5 | SHOULD surface Watch / Nearly done on Today (max 6: pinned Steps/Tasks + auto nearly-done Steps), below Due now and Active Epic | v0.3.1 |
 | R4.6 | MUST provide read-only RewardLog history (newest first) without DIY point economies | v0.3.1 |
 | R4.7 | SHOULD offer Today life-mode filter chips (All + work/health/home/learning) that hide/show items without reordering sections | v0.4 |
+| R4.8 | MUST provide a fixed Reward shop (`/shop`) to spend points on a designer catalog; underfunded redeem MUST return HTTP 400; Today MAY link pts to shop but MUST NOT place a shop section above Due now / Active Epic | v0.5 |
 
 ## R5 — Epics, Phases, Steps
 

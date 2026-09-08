@@ -35,6 +35,8 @@ a:hover { text-decoration: underline; }
   background: var(--panel); border: 1px solid #2e3d55; border-radius: 999px;
   padding: 0.35rem 0.8rem; color: var(--gold); font-weight: 600;
 }
+a.points { text-decoration: none; }
+a.points:hover { text-decoration: underline; border-color: var(--accent); }
 .card {
   background: var(--panel); border: 1px solid #2a3a52; border-radius: var(--radius);
   padding: 1rem 1.1rem; margin-bottom: 1rem;
