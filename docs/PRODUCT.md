@@ -83,3 +83,7 @@ PO owns product decisions and naming. Client provides vision only.
 
 After completion, explicit Start follow-on creates a linked refine/maintain Epic (`follows_epic_id`) without wiping the completed one.
 
+### v0.7 Export & backup
+
+Settings JSON export/restore (merge or replace-with-confirm). No cloud sync.
+
