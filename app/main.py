@@ -759,7 +759,201 @@ def epic_detail(
             "life_modes": LIFE_MODES,
             "life_mode_labels": LIFE_MODE_LABELS,
             "epic_life_modes": life_modes_from_json(epic.life_modes),
+            "follows_from": (
+                db.get(Epic, epic.follows_epic_id) if epic.follows_epic_id else None
+            ),
+            "follow_ons": list(
+                db.scalars(
+                    select(Epic).where(
+                        Epic.user_id == user.id,
+                        Epic.follows_epic_id == epic.id,
+                    )
+                ).all()
+            ),
         },
+    )
+
+
+DEFAULT_FOLLOW_ON_PHASES = (
+    (
+        "Stabilize",
+        "Review what landed\nCapture open threads\nLock the wins",
+    ),
+    (
+        "Improve",
+        "Pick one refinement\nShip a small improvement\nRe-check the identity goal",
+    ),
+)
+
+
+@app.get("/epics/{epic_id}/follow-on", response_class=HTMLResponse)
+def follow_on_form(
+    epic_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    """Explicit Start follow-on CTA only — never auto-starts."""
+    source = _load_epic(db, epic_id)
+    if not source or source.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Epic not found.")
+    if not source.completed:
+        raise HTTPException(
+            status_code=400,
+            detail="Follow-on is only offered after the Epic is completed.",
+        )
+    modes = life_modes_from_json(source.life_modes)
+    id_end = source.identity_end or ""
+    cap_end = source.capability_end or ""
+    if id_end and "refine" not in id_end.lower():
+        id_prefill = f"{id_end} (refine / maintain)"
+    else:
+        id_prefill = id_end or "Refine / maintain who you became"
+    if cap_end and "refine" not in cap_end.lower() and "maintain" not in cap_end.lower():
+        cap_prefill = f"{cap_end} (refine / maintain)"
+    else:
+        cap_prefill = cap_end or "Keep and refine the capability"
+    return templates.TemplateResponse(
+        "follow_on.html",
+        {
+            "request": request,
+            "user": user,
+            "source": source,
+            "flash": _read_flash(request),
+            "prefill_title": f"Follow-on: {source.title}",
+            "prefill_identity": id_prefill,
+            "prefill_capability": cap_prefill,
+            "prefill_notes": "Refine / maintain — explicit follow-on from a completed Epic.",
+            "prefill_modes": modes,
+            "phase_rows": [
+                {"title": t, "steps": s} for t, s in DEFAULT_FOLLOW_ON_PHASES
+            ],
+            "life_modes": LIFE_MODES,
+            "life_mode_labels": LIFE_MODE_LABELS,
+        },
+    )
+
+
+@app.post("/epics/{epic_id}/follow-on")
+def create_follow_on(
+    epic_id: int,
+    title: str = Form(...),
+    notes: str = Form(""),
+    identity_end: str = Form(""),
+    capability_end: str = Form(""),
+    path: str = Form("focused"),
+    life_modes: list[str] = Form([]),
+    phase_titles: list[str] = Form(...),
+    phase_steps: list[str] = Form(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    source = db.get(Epic, epic_id)
+    if not source or source.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Epic not found.")
+    if not source.completed:
+        raise HTTPException(
+            status_code=400,
+            detail="Follow-on is only offered after the Epic is completed.",
+        )
+
+    # Snapshot source fields before create — must remain unchanged after commit
+    source_snapshot = {
+        "id": source.id,
+        "title": source.title,
+        "completed": source.completed,
+        "completed_at": source.completed_at,
+        "identity_end": source.identity_end,
+        "capability_end": source.capability_end,
+        "life_modes": source.life_modes,
+        "path": source.path,
+        "notes": source.notes,
+    }
+
+    title = title.strip()
+    if not title:
+        raise HTTPException(status_code=400, detail="Epic title is required.")
+    try:
+        epic_path = normalize_path(path)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from None
+
+    phases_data: list[tuple[str, list[str]]] = []
+    for i, raw_title in enumerate(phase_titles):
+        pt = (raw_title or "").strip()
+        steps_raw = phase_steps[i] if i < len(phase_steps) else ""
+        step_lines = [ln.strip() for ln in steps_raw.splitlines() if ln.strip()]
+        if not pt and not step_lines:
+            continue
+        if not pt:
+            raise HTTPException(status_code=400, detail="Each Phase needs a title.")
+        if not step_lines:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Phase “{pt}” needs at least one Step (newline-separated).",
+            )
+        phases_data.append((pt, step_lines))
+
+    if len(phases_data) < 1:
+        raise HTTPException(
+            status_code=400,
+            detail="Follow-on needs at least one Phase with Steps.",
+        )
+
+    epic = Epic(
+        user_id=user.id,
+        follows_epic_id=source.id,
+        title=title,
+        notes=notes.strip() or None,
+        legendary=True,
+        identity_end=identity_end.strip() or None,
+        capability_end=capability_end.strip() or None,
+        path=epic_path,
+        life_modes=_parse_life_modes_form(life_modes),
+        completed=False,
+        completed_at=None,
+    )
+    db.add(epic)
+    db.flush()
+    for sort_i, (pt, step_lines) in enumerate(phases_data):
+        phase = Phase(
+            epic_id=epic.id,
+            title=pt,
+            sort_order=sort_i,
+            parked=False,
+        )
+        db.add(phase)
+        db.flush()
+        for step_i, step_title in enumerate(step_lines):
+            db.add(
+                Step(
+                    phase_id=phase.id,
+                    title=step_title,
+                    sort_order=step_i,
+                    parallel=True,
+                )
+            )
+
+    if epic_path == PATH_FOCUSED:
+        db.flush()
+        for phase in sorted(epic.phases, key=lambda ph: ph.sort_order):
+            if phase.sort_order >= FOCUSED_KEEP_PHASES:
+                phase.parked = True
+
+    db.commit()
+
+    # Re-load source — must be byte-identical on protected fields
+    db.refresh(source)
+    for key, val in source_snapshot.items():
+        if getattr(source, key) != val:
+            raise HTTPException(
+                status_code=500,
+                detail="Follow-on must not mutate the completed Epic.",
+            )
+
+    return _flash_redirect(
+        f"/epics/{epic.id}",
+        f"Follow-on created (follows Epic #{source.id})",
     )
 
 

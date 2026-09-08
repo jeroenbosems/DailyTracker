@@ -13,6 +13,7 @@
 | [LLM_INGEST.md](./LLM_INGEST.md) | AI-assisted Epic authoring contract (New vs Update) |
 | [templates/](./templates/) | Starter Epic JSON payloads (`mode:new`) for v0.4 |
 | [REWARD_SHOP.md](./REWARD_SHOP.md) | Fixed reward shop catalog + redeem rules (v0.5) |
+| [FOLLOW_ON.md](./FOLLOW_ON.md) | Follow-on Epic after completion (v0.6) |
 
 ## Process
 
