@@ -119,6 +119,7 @@ def test_http_review_readonly_and_cta(tmp_path, monkeypatch):
         assert page.status_code == 200
         assert "Weekly review" in page.text
         assert "Back to Today" in page.text
+        assert page.text.count("Back to Today") == 1
         assert 'href="/today"' in page.text
         # read-only: no complete/redeem forms on review
         assert 'action="/tasks/' not in page.text
@@ -127,5 +128,8 @@ def test_http_review_readonly_and_cta(tmp_path, monkeypatch):
         today = client.get("/today")
         assert 'href="/review"' in today.text
         assert "Weekly review" in today.text
+        title_end = today.text.lower().find("</title>")
+        assert title_end > 0
+        assert "weekly review" not in today.text[:title_end].lower()
     finally:
         main.app.dependency_overrides.clear()
