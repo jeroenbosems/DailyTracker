@@ -89,7 +89,7 @@ Must pass before promote `test` → `release`:
 7. **Out** — cloud sync; auto-backup outside the Docker volume
 
 
-## v0.8 (current gate)
+## v0.8 (shipped)
 
 Must pass before promote `test` → `release`:
 
@@ -97,6 +97,16 @@ Must pass before promote `test` → `release`:
 2. **Empty states** — Today / Epics / Shop each show one clear productivity CTA when empty
 3. **Docs** — PRODUCT roadmap marks shipped slices through v0.7+; ACCEPTANCE current gate = v0.8
 4. **Out** — no new game systems
+
+
+## v0.9 (current gate)
+
+Must pass before promote `test` → `release`:
+
+1. **`/review`** — read-only weekly snapshot: completed Tasks/Routines/Steps this ISO week; Active Epic % + next Step; points earned; daily/weekly Period bonus status
+2. **Entry** — nav link + Today footer link only (no Today board clutter)
+3. **CTA** — one primary “Back to Today”
+4. **Out** — email/push notifications; editing from review
 
 ## How to report
 

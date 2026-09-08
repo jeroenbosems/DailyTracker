@@ -13,6 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.review import build_weekly_review
 from app.backup import (
     REPLACE_CONFIRM_PHRASE,
     BackupError,
@@ -1128,6 +1129,30 @@ def create_step(
     )
     db.commit()
     return _flash_redirect(f"/epics/{phase.epic_id}", "Step created")
+
+
+# ---------------------------------------------------------------------------
+# Weekly review (v0.9) — read-only
+# ---------------------------------------------------------------------------
+
+
+@app.get("/review", response_class=HTMLResponse)
+def weekly_review_page(
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    ensure_default_period_bonuses(db, user)
+    review = build_weekly_review(db, user)
+    return templates.TemplateResponse(
+        "review.html",
+        {
+            "request": request,
+            "user": user,
+            "review": review,
+            "flash": _read_flash(request),
+        },
+    )
 
 
 # ---------------------------------------------------------------------------
