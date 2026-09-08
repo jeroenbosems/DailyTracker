@@ -76,7 +76,7 @@ Must pass before promote `test` → `release`:
 Out of scope: auto-starting follow-ons; DIY reward changes.
 
 
-## v0.7 (current gate)
+## v0.7 (shipped)
 
 Must pass before promote `test` → `release`:
 
@@ -87,6 +87,16 @@ Must pass before promote `test` → `release`:
 5. **UI** — Settings page only; no export/restore clutter on Today
 6. **Docs** — ACCEPTANCE/PRODUCT/DECISIONS (+ EXPORT_BACKUP.md)
 7. **Out** — cloud sync; auto-backup outside the Docker volume
+
+
+## v0.8 (current gate)
+
+Must pass before promote `test` → `release`:
+
+1. **Watch pins** — `watch_items` in export/restore (kind + ref_external_id); pins round-trip; replace wipe still clears then restores from payload
+2. **Empty states** — Today / Epics / Shop each show one clear productivity CTA when empty
+3. **Docs** — PRODUCT roadmap marks shipped slices through v0.7+; ACCEPTANCE current gate = v0.8
+4. **Out** — no new game systems
 
 ## How to report
 

@@ -41,7 +41,8 @@
     <h2>Your Epics</h2>
     <p class="muted">Month-scale ambitions broken into Phases and day-scale Steps. Activate one for Today focus; others stay Parked without punishment.</p>
     {% if not rows %}
-      <p class="empty">No Epics yet — create one below (≥2 Phases, each with newline-separated Steps).</p>
+      <p class="empty">No Epics yet — start with a clear outcome and a few Phases.</p>
+      <p style="margin-top:0.75rem"><a class="btn primary" href="#new-epic">Create an Epic</a></p>
     {% endif %}
     {% for row in rows %}
       <div class="item">
@@ -75,7 +76,7 @@
   </div>
 
   <div class="card">
-    <h2>New Epic</h2>
+    <h2 id="new-epic">New Epic</h2>
     <p class="muted">Full path suggests 3 Phases; Focused uses 2 condensed Phases. Steps are one per line. Prefer parallel Steps so a session can always advance.</p>
     <form method="post" action="/epics" id="new-epic-form">
       <label for="epic_title">Title</label>
