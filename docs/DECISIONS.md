@@ -2,6 +2,12 @@
 
 Append-only. Newest first. Chat opinions do not count until recorded here and reflected in REQUIREMENTS.md / PRODUCT.md.
 
+## 2026-09-08 — v0.6 Follow-on Epic
+
+**Decision:** When an Epic completes, offer explicit **Start follow-on** (detail + Today). Creates a **new** Epic with `follows_epic_id` → completed one; never mutates/wipes the completed Epic. Prefill title/identity/capability/life modes; default Focused with editable Stabilize/Improve starters. Bidirectional Follows / Follow-ons links.
+**Why:** Locked v0.6 scope; refine/maintain without destroying history.
+**Affects:** ACCEPTANCE v0.6; PRODUCT roadmap; GitFlow into `feat/v0.6-follow-on` → `dev`
+
 ## 2026-09-08 — Long-lived GitFlow branches
 
 **Decision:** Use four long-lived branches — `main`, `release`, `test`, `dev` — plus short-lived `feat/*` / `fix/*` / `hotfix/*`.

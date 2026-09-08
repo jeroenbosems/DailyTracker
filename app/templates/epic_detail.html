@@ -53,8 +53,21 @@
         {% else %}
           <p class="meta">No parent Epic (standalone)</p>
         {% endif %}
+        {% if follows_from %}
+          <p class="meta">Follows: <a href="/epics/{{ follows_from.id }}">{{ follows_from.title }}</a></p>
+        {% endif %}
+        {% if follow_ons %}
+          <p class="meta">Follow-ons:
+            {% for fo in follow_ons %}
+              <a href="/epics/{{ fo.id }}">{{ fo.title }}</a>{% if not loop.last %}, {% endif %}
+            {% endfor %}
+          </p>
+        {% endif %}
       </div>
       <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+        {% if epic.completed %}
+          <a class="btn primary" href="/epics/{{ epic.id }}/follow-on">Start follow-on</a>
+        {% endif %}
         {% if is_active and not epic.completed %}
           <form method="post" action="/epics/{{ epic.id }}/park"><button class="ghost" type="submit">Park</button></form>
         {% elif not is_active and not epic.completed %}
