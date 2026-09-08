@@ -34,7 +34,8 @@
     <h2>Due now · {{ today.isoformat() }}</h2>
     <p class="muted">Needed work first — priority + overdue/due today. Gamification never outranks this list.</p>
     {% if not due_tasks and not due_routines %}
-      <p class="empty">Nothing due right now. Nice — or add a high-priority task.</p>
+      <p class="empty">Nothing due right now — nice. When you are ready, capture the next useful task.</p>
+      <p style="margin-top:0.75rem"><a class="btn primary" href="#add-task">Add a task</a></p>
     {% endif %}
     {% for t in due_tasks %}
       <div class="item">
@@ -64,7 +65,8 @@
     {% if active_hidden_by_filter %}
       <p class="empty">Active Epic is hidden by this life-mode filter (it’s tagged differently). <a href="/today">Show All</a> or switch filter — progress is unchanged.</p>
     {% elif not active_epic %}
-      <p class="empty">No Active Epic. <a href="/epics">Activate one</a> for a next Step — or <a href="/import">Import</a> a plan.</p>
+      <p class="empty">No Active Epic yet — pick one so Today has a clear next Step.</p>
+      <p style="margin-top:0.75rem"><a class="btn primary" href="/epics">Choose an Epic</a></p>
     {% else %}
       <div class="item" style="flex-direction:column;align-items:stretch">
         <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap">
@@ -189,7 +191,7 @@
   <div class="grid grid-2">
     <div class="stack">
       <div class="card">
-        <h2>New task</h2>
+        <h2 id="add-task">New task</h2>
         <form method="post" action="/tasks">
           <div class="row cols-3">
             <div>

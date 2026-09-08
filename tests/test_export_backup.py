@@ -230,3 +230,45 @@ def test_http_settings_export_no_secrets_on_today(tmp_path, monkeypatch):
         assert "Restore" in settings.text
     finally:
         main.app.dependency_overrides.clear()
+
+
+def test_watch_items_round_trip_on_export_restore():
+    db = _session()
+    user = _user(db)
+    task = Task(user_id=user.id, title="Pin me", external_id="task-pin", priority=1)
+    db.add(task)
+    db.flush()
+    epic = Epic(user_id=user.id, title="E", external_id="epic-w", path="full")
+    db.add(epic)
+    db.flush()
+    ph = Phase(epic_id=epic.id, title="P", external_id="phase-w", sort_order=0)
+    db.add(ph)
+    db.flush()
+    step = Step(phase_id=ph.id, title="S", external_id="step-pin", sort_order=0)
+    db.add(step)
+    db.flush()
+    from app.models import WatchItem
+
+    db.add(WatchItem(user_id=user.id, kind="task", ref_id=task.id))
+    db.add(WatchItem(user_id=user.id, kind="step", ref_id=step.id))
+    db.commit()
+
+    payload = build_export(db, user)
+    db.commit()
+    kinds = sorted((w["kind"], w["ref_external_id"]) for w in payload["watch_items"])
+    assert ("step", "step-pin") in kinds
+    assert ("task", "task-pin") in kinds
+
+    # wipe watches and restore via replace
+    apply_restore(
+        db,
+        user,
+        json.dumps(payload),
+        mode="replace",
+        replace_confirm_text="REPLACE",
+        replace_confirm_checked=True,
+    )
+    db.commit()
+    watches = list(db.scalars(select(WatchItem).where(WatchItem.user_id == user.id)).all())
+    assert len(watches) == 2
+    assert {w.kind for w in watches} == {"task", "step"}
