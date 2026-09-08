@@ -47,7 +47,7 @@ Out of scope for this gate: life-mode filters, reward shop, follow-on Epic.
 
 - [x] Life modes + Today filter chips (section order fixed); starter templates; docs + NFRs
 
-## v0.5 (current gate)
+## v0.5 (shipped)
 
 Must pass before merge:
 
@@ -59,6 +59,21 @@ Must pass before merge:
 6. **R2.*** / **R1.*** / **R7.1** / **R3.4** — prior NFRs still hold
 
 Out of scope for this gate: RNG, user-defined rewards/prices, follow-on Epic.
+
+
+## v0.6 (current gate)
+
+Must pass before promote `test` → `release`:
+
+1. **Explicit CTA** — completed Epic detail + Today celebration show **Start follow-on**; no auto-start without confirm/submit
+2. **New Epic** — creates via `follows_epic_id` pointing at the completed Epic; completed Epic fields unchanged (no wipe/mutate)
+3. **Prefill** — title `Follow-on: {title}`, identity/capability from parent with refine/maintain tone, same life modes, path default **Focused**, editable Stabilize / Improve starter Phases+Steps
+4. **Links** — new Epic shows “Follows: …”; completed Epic shows “Follow-ons” links
+5. **Today / Active** — behavior unchanged aside from the celebration CTA
+6. **Docs** — ACCEPTANCE/PRODUCT/DECISIONS (+ optional FOLLOW_ON.md)
+7. **Prior NFRs** — R2.* / R1.* / R7.1 still hold
+
+Out of scope: auto-starting follow-ons; DIY reward changes.
 
 ## How to report
 

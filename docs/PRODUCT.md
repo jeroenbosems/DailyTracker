@@ -78,3 +78,8 @@ Multi-user, cloud sync, mobile apps, OAuth / IdP, custom reward economies, Jira/
 Also: **Watch / Nearly done** never outranks Due now or Active Epic on Today (R7.1). Pins store Steps and open Tasks only.
 
 PO owns product decisions and naming. Client provides vision only.
+
+### v0.6 Follow-on Epic
+
+After completion, explicit Start follow-on creates a linked refine/maintain Epic (`follows_epic_id`) without wiping the completed one.
+

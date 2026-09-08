@@ -106,7 +106,10 @@
         {% elif next_step_filtered_out %}
           <p class="empty">No next Step matches this life-mode filter (remaining Steps are tagged differently). <a href="/today">Show All</a> to see them — Epic isn’t complete.</p>
         {% elif epic_truly_complete %}
-          <p class="empty">This Epic is complete — activate another or celebrate.</p>
+          <p class="empty">This Epic is complete — celebrate, or start a follow-on.</p>
+          <p style="margin-top:0.75rem">
+            <a class="btn primary" href="/epics/{{ active_epic.id }}/follow-on">Start follow-on</a>
+          </p>
         {% else %}
           <p class="empty">No next Step right now — check Phases on the Epic page.</p>
         {% endif %}
