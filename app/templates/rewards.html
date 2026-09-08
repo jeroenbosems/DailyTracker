@@ -8,9 +8,10 @@
         <a href="/today">Today</a>
         <a href="/epics">Epics</a>
         <a href="/rewards" class="active">Rewards</a>
+        <a href="/shop">Shop</a>
         <a href="/import">Import</a>
       </nav>
-      <span class="points">{{ user.total_points }} pts</span>
+      <a class="points" href="/shop">{{ user.total_points }} pts</a>
       <span class="muted">{{ user.username }}</span>
       <form method="post" action="/logout"><button class="ghost" type="submit">Sign out</button></form>
     </div>

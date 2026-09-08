@@ -11,6 +11,7 @@
 | [MOTIVATION.md](./MOTIVATION.md) | Design research / inspiration (non-normative) |
 | [LLM_INGEST.md](./LLM_INGEST.md) | AI-assisted Epic authoring contract (New vs Update) |
 | [templates/](./templates/) | Starter Epic JSON payloads (`mode:new`) for v0.4 |
+| [REWARD_SHOP.md](./REWARD_SHOP.md) | Fixed reward shop catalog + redeem rules (v0.5) |
 
 ## Process
 

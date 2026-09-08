@@ -36,6 +36,9 @@ class User(Base):
     watch_items: Mapped[list[WatchItem]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
+    redemptions: Mapped[list[Redemption]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class Task(Base):
@@ -220,3 +223,18 @@ class WatchItem(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     user: Mapped[User] = relationship(back_populates="watch_items")
+
+
+class Redemption(Base):
+    """Spend of fixed shop catalog points (v0.5)."""
+
+    __tablename__ = "redemptions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    catalog_id: Mapped[str] = mapped_column(String(32), nullable=False)
+    points_spent: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    fulfilled_irl: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    user: Mapped[User] = relationship(back_populates="redemptions")

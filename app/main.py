@@ -47,7 +47,7 @@ from app.epics_logic import (
     phase_progress,
     switch_epic_path,
 )
-from app.models import Epic, Phase, RewardLog, Routine, Step, Task, User
+from app.models import Epic, Phase, Redemption, RewardLog, Routine, Step, Task, User
 from app.path_routes import apply_path_switch
 from app.period_bonuses import (
     ensure_default_period_bonuses,
@@ -55,6 +55,13 @@ from app.period_bonuses import (
     record_completion,
 )
 from app.rewards import grant_reward
+from app.shop import (
+    ShopError,
+    catalog_items,
+    get_catalog_item,
+    redeem,
+    set_fulfilled_irl,
+)
 from app.routines_logic import CADENCES, advance_due, streak_continues
 from app.watch_logic import (
     KIND_STEP,
@@ -1077,6 +1084,76 @@ def watch_unpin(
     unpin_item(db, user, kind, ref_id)
     db.commit()
     return _flash_redirect(dest, "Unpinned from Watch")
+
+
+
+# ---------------------------------------------------------------------------
+# Reward shop (v0.5) — fixed catalog spend + redemption history
+# ---------------------------------------------------------------------------
+
+
+@app.get("/shop", response_class=HTMLResponse)
+def shop_view(request: Request, db: Session = Depends(get_db), user: User = Depends(require_user)):
+    history = db.scalars(
+        select(Redemption)
+        .where(Redemption.user_id == user.id)
+        .order_by(Redemption.created_at.desc(), Redemption.id.desc())
+    ).all()
+    rows = []
+    for row in history:
+        item = get_catalog_item(row.catalog_id)
+        rows.append(
+            {
+                "redemption": row,
+                "label": item.label if item else row.catalog_id,
+            }
+        )
+    return templates.TemplateResponse(
+        "shop.html",
+        {
+            "request": request,
+            "user": user,
+            "catalog": catalog_items(),
+            "history": rows,
+            "flash": _read_flash(request),
+        },
+    )
+
+
+@app.post("/shop/redeem")
+def shop_redeem(
+    catalog_id: str = Form(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    try:
+        row = redeem(db, user, catalog_id)
+        db.commit()
+        item = get_catalog_item(row.catalog_id)
+        label = item.label if item else row.catalog_id
+        return _flash_redirect("/shop", f"Redeemed: {label} (−{row.points_spent} pts)")
+    except ShopError as exc:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=exc.message) from None
+
+
+@app.post("/shop/redemptions/{redemption_id}/fulfilled")
+def shop_fulfilled(
+    redemption_id: int,
+    fulfilled_irl: str = Form(""),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    try:
+        # Checkbox: present → True; absent / empty → False
+        fulfilled = fulfilled_irl in {"on", "true", "1", "yes"}
+        row = set_fulfilled_irl(db, user, redemption_id, fulfilled)
+        db.commit()
+        state = "Done in real life" if row.fulfilled_irl else "Not yet done in real life"
+        return _flash_redirect("/shop", state)
+    except ShopError as exc:
+        db.rollback()
+        raise HTTPException(status_code=404, detail=exc.message) from None
 
 
 @app.get("/health")
