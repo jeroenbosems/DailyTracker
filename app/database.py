@@ -48,6 +48,10 @@ def _migrate_schema() -> None:
         ("steps", "life_mode", "ALTER TABLE steps ADD COLUMN life_mode VARCHAR(16)"),
         ("epics", "life_modes", "ALTER TABLE epics ADD COLUMN life_modes TEXT DEFAULT '[]'"),
         ("epics", "follows_epic_id", "ALTER TABLE epics ADD COLUMN follows_epic_id INTEGER"),
+        ("tasks", "external_id", "ALTER TABLE tasks ADD COLUMN external_id VARCHAR(128)"),
+        ("routines", "external_id", "ALTER TABLE routines ADD COLUMN external_id VARCHAR(128)"),
+        ("reward_logs", "external_id", "ALTER TABLE reward_logs ADD COLUMN external_id VARCHAR(128)"),
+        ("redemptions", "external_id", "ALTER TABLE redemptions ADD COLUMN external_id VARCHAR(128)"),
     ]
     with engine.begin() as conn:
         for table, column, ddl in alterations:
