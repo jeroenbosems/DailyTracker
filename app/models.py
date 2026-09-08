@@ -103,6 +103,7 @@ class Epic(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     external_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     parent_epic_id: Mapped[int | None] = mapped_column(ForeignKey("epics.id"), nullable=True)
+    follows_epic_id: Mapped[int | None] = mapped_column(ForeignKey("epics.id"), nullable=True)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     legendary: Mapped[bool] = mapped_column(Boolean, default=True)
