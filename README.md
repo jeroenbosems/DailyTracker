@@ -6,11 +6,15 @@ Designed to run everywhere via Docker. One user, data on a named volume, no clou
 
 ## Quick start
 
+Open in VS Code → run start script.
+
 ```bash
-docker compose up --build
+./scripts/start.sh
 ```
 
-Open http://localhost:8000
+Windows (PowerShell): `scripts/start.ps1`
+
+The script checks that Docker is running, starts the app with `compose up --build -d`, and prints http://localhost:8000. No extra config.
 
 1. First visit creates your **local** account (username + password).
 2. Add tasks and routines.
