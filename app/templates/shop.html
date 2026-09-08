@@ -24,14 +24,20 @@
     <p class="muted">Spend earned points on a <strong>fixed</strong> catalog — real breaks and treats, not DIY prices. Earn points by completing Due now work and Active Epic Steps; redeem here when you’ve earned them.</p>
     <p class="meta" style="margin-bottom:0.75rem">Balance: <strong>{{ user.total_points }}</strong> pts</p>
     {% for item in catalog %}
+      {% set need = item.cost - user.total_points %}
       <div class="item">
         <div>
           <h3>{{ item.label }}</h3>
           <div class="meta">{{ item.cost }} pts · fixed catalog</div>
+          {% if need <= 0 %}
+            <div class="meta"><span class="badge gold">Afford</span> You can redeem this now.</div>
+          {% else %}
+            <div class="meta"><span class="badge silver">Need {{ need }} more</span> Earn {{ need }} pts to unlock.</div>
+          {% endif %}
         </div>
         <form method="post" action="/shop/redeem">
           <input type="hidden" name="catalog_id" value="{{ item.id }}" />
-          <button type="submit" {% if user.total_points < item.cost %}disabled title="Not enough points"{% endif %}>Redeem</button>
+          <button type="submit" {% if need > 0 %}disabled title="Need {{ need }} more points"{% endif %}>Redeem</button>
         </form>
       </div>
     {% endfor %}

@@ -241,3 +241,29 @@ def test_http_shop_redeem_and_fulfill(tmp_path, monkeypatch):
         assert body.index("Due now") < body.index("Active Epic")
     finally:
         main.app.dependency_overrides.clear()
+
+
+
+
+def test_shop_template_afford_need_copy():
+    from jinja2 import Environment, FileSystemLoader, select_autoescape
+    from pathlib import Path
+    from types import SimpleNamespace
+    from app.shop import catalog_items
+
+    env = Environment(
+        loader=FileSystemLoader(str(Path("app/templates"))),
+        autoescape=select_autoescape(["html"]),
+    )
+    tmpl = env.get_template("shop.html")
+    user = SimpleNamespace(total_points=50, username="u")
+    html = tmpl.render(
+        request=SimpleNamespace(),
+        user=user,
+        catalog=catalog_items(),
+        history=[],
+        flash=None,
+    )
+    assert "Afford" in html
+    assert "Need 30 more" in html  # snack 80 - 50
+    assert "Need 50 more" in html  # media_ep 100 - 50
