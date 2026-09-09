@@ -42,10 +42,11 @@ items:
 - id: BL-020
   title: Search Tasks / Routines / Epics / Steps from nav
   type: feature
-  status: doing
+  status: committed
   priority: 10
   refined: true
   estimate: 1.5d
+  shipped_in: v1.1
   estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
   acceptance:
   - Query by title substring; results link to detail
@@ -54,7 +55,7 @@ items:
 - id: BL-021
   title: Edit / archive completed Epics without delete (soft archive)
   type: feature
-  status: planned
+  status: doing
   priority: 11
   refined: true
   estimate: 1.5d
