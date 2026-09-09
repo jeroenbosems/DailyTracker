@@ -2,6 +2,12 @@
 
 Append-only. Newest first. Chat opinions do not count until recorded here and reflected in REQUIREMENTS.md / PRODUCT.md.
 
+## 2026-09-09 — v1.1 reopen (Search → soft archive → routine skip)
+
+**Decision:** Client reopened after v1.0-rc freeze for 1.1: BL-020 Search, BL-021 Soft archive, BL-031 Routine skip (stretch BL-023). Out: dual Active, heat-map, DIY/cloud/multi-user.
+**Why:** Keep shipping value while Docker smoke waits on client.
+**Affects:** backlog; ACCEPTANCE v1.1; feat/v1.1-search
+
 ## 2026-09-08 — v1.0-rc shippable cut
 
 **Decision:** After v0.9 on main, tag `v1.0-rc` once Tester smoke passes (fresh clone → start script → setup → template Epic → Step → redeem/export). README gets a Shippable RC section. Feature freeze to bugfixes only until v1.0 or reopen.
