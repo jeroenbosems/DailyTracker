@@ -11,13 +11,15 @@ Replaces Jira / Azure DevOps / Trello for this project. **Chat is not the backlo
 | `ready_for_test` | On `dev`, waiting promote/`test` gate | Developer → Tester |
 | `tested` | Tester CLEAR on `test` | Tester |
 | `committed` | Merged through GitFlow onto `main` (shipped) | Developer |
+| `icebox` | Valid idea, not near-term; unrefined or demoted | PO |
+| `wont_do` | Explicitly rejected (NON-GOAL / anti-pattern) | PO + Tester |
 
 ## Rules
 
 1. PO owns prioritization (`priority` ascending = do sooner) and refinement.
 2. Developer estimates **time-to-get-it-right** (solid shippable quality, not a throwaway spike) in `estimate` once `refined: true`.
 3. Tester **pushes back** when an item doesn’t match the codebase, NFRs, or product direction — escalate to PO; PO may cut or re-scope.
-4. Only `planned` / `doing` / `ready_for_test` items are “open work.” `committed` is history.
+4. Only `planned` / `doing` / `ready_for_test` items are “open work.” `committed` is history; `icebox` / `wont_do` are not open work.
 5. Feature freeze (e.g. post `v1.0-rc`) means no new `doing` except bugfixes (`type: bug`) until PO reopens.
 
 ## Files
