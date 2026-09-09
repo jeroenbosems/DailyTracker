@@ -42,7 +42,7 @@ items:
 - id: BL-020
   title: Search Tasks / Routines / Epics / Steps from nav
   type: feature
-  status: planned
+  status: doing
   priority: 10
   refined: true
   estimate: 1.5d
