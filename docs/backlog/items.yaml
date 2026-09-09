@@ -1,0 +1,337 @@
+schema_version: 1
+updated: '2026-09-09'
+items:
+- id: BL-017
+  title: In-repo backlog process (this folder) kept current each slice
+  type: docs
+  status: doing
+  priority: 3
+  refined: true
+  estimate: 0.5d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
+  acceptance:
+  - docs/backlog/items.yaml + README on main via GitFlow
+  - PO updates status when work moves; Dev adds estimates on refined items
+- id: BL-015
+  title: Prove ./scripts/start.sh on a machine with Docker daemon
+  type: chore
+  status: planned
+  priority: 1
+  refined: true
+  estimate: 0.5d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
+  acceptance:
+  - Fresh clone; start.sh brings up app at http://localhost:8000
+  - Document result in DECISIONS or release notes; unblock v1.0 tag if green
+  notes: Gap from v1.0-rc smoke (no Docker on agent boxes). Client or any agent with
+    Docker.
+- id: BL-016
+  title: Call v1.0 (tag) after Docker start proof + no critical bugs
+  type: chore
+  status: planned
+  priority: 2
+  refined: true
+  estimate: 0.25d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
+  depends_on:
+  - BL-015
+  acceptance:
+  - Tag v1.0 on main
+  - GitHub release notes summarize shippable cut
+  - Feature freeze policy updated (reopen explicitly)
+- id: BL-020
+  title: Search Tasks / Routines / Epics / Steps from nav
+  type: feature
+  status: doing
+  priority: 10
+  refined: true
+  estimate: 1.5d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
+  acceptance:
+  - Query by title substring; results link to detail
+  - Respects auth; no Today reorder change (R7.1)
+  notes: Low overhead; helps large backlogs of Steps.
+- id: BL-021
+  title: Edit / archive completed Epics without delete (soft archive)
+  type: feature
+  status: planned
+  priority: 11
+  refined: true
+  estimate: 1.5d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
+  acceptance:
+  - Archive hides from default Epic list; restore available
+  - Never wipes Steps/progress
+  - Follow-ons still resolvable
+- id: BL-022
+  title: Bulk complete / reschedule Due now selection
+  type: feature
+  status: planned
+  priority: 12
+  refined: true
+  estimate: 2d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
+  acceptance:
+  - Multi-select Due now; complete or +1 day with confirm dialog
+  - Max 5 items per bulk action
+  - Period bonus still from normal rules — bulk does not auto-claim chest
+  - Rewards still per-item; no DIY points
+  notes: 'ONLY with hard limits (Tester): confirm; max 5/action; bulk does not auto-claim
+    Period bonus.'
+- id: BL-023
+  title: Keyboard shortcuts on Today (complete next Step, open review)
+  type: feature
+  status: planned
+  priority: 13
+  refined: true
+  estimate: 1d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
+  acceptance:
+  - Documented shortcuts; no conflict with form inputs
+  - Optional; discoverable in UI footer
+- id: BL-024
+  title: Dark theme (CSS only, local preference cookie/localStorage)
+  type: feature
+  status: planned
+  priority: 14
+  refined: true
+  estimate: 1d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
+  acceptance:
+  - Toggle in Settings; persists per browser
+  - No new backend tables required if cookie/localStorage
+- id: BL-025
+  title: Printable / PDF-friendly Weekly review
+  type: feature
+  status: planned
+  priority: 15
+  refined: true
+  estimate: 0.5d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
+  acceptance:
+  - Print stylesheet for /review
+  - No external PDF service
+- id: BL-030
+  title: Custom life-mode labels (still fixed max count, no free-tag chaos)
+  type: feature
+  status: planned
+  priority: 20
+  refined: true
+  estimate: 1.5d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
+  acceptance:
+  - Rename the four modes in Settings; ids stable
+  - No unbounded user tag taxonomy
+  notes: 'Tester: push back if this becomes a taxonomy product.'
+- id: BL-031
+  title: Routine skip with reason (soft; no streak wipe)
+  type: feature
+  status: planned
+  priority: 21
+  refined: true
+  estimate: 1.5d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
+  acceptance:
+  - Skip marks period handled without completion reward
+  - Best streak untouched; Period bonus rules unchanged
+- id: BL-032
+  title: Epic progress chart (simple SVG sparkline on detail)
+  type: feature
+  status: planned
+  priority: 22
+  refined: true
+  estimate: 1.5d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
+  acceptance:
+  - Completion over time from Step completions
+  - No analytics outbound
+- id: BL-050
+  title: Mobile-responsive layout pass (still server-rendered)
+  type: feature
+  status: planned
+  priority: 40
+  refined: true
+  estimate: 2d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
+  acceptance:
+  - Usable Today on narrow viewports
+  - No native mobile app (non-goal)
+- id: BL-080
+  title: Docs bot / automated REQUIREMENTS sync each release
+  type: chore
+  status: planned
+  priority: 60
+  refined: false
+  estimate: null
+  notes: Optional headcount; only if docs drift becomes real pain.
+- id: BL-040
+  title: Calendar heat-map of completions (year view)
+  type: feature
+  status: icebox
+  priority: 80
+  refined: true
+  estimate: null
+  acceptance:
+  - Local-only; derived from existing completion timestamps
+  - Must not become the primary motivation (R7.1)
+  notes: 'Icebox: R7.1 vanity risk; revisit only with strong need.'
+- id: BL-060
+  title: i18n / second language packs
+  type: feature
+  status: icebox
+  priority: 85
+  refined: false
+  estimate: null
+  notes: 'Icebox: unrefined; not shippable-cut material.'
+- id: BL-041
+  title: Optional second Active Epic (soft dual-focus) with explicit cap=2
+  type: feature
+  status: wont_do
+  priority: 999
+  refined: true
+  estimate: null
+  acceptance:
+  - Default remains 1; Settings opt-in to max 2
+  - Today still prefers priority/Due now ordering
+  notes: 'CUT: one Active + Parked stands; dual Active recreates overload.'
+- id: BL-070
+  title: Multi-user / household accounts
+  type: feature
+  status: wont_do
+  priority: 999
+  refined: true
+  estimate: null
+  notes: 'EXPLICIT NON-GOAL historically. Kept only as parked idea — Tester should
+    push back hard unless PO revises PRODUCT non-goals. PO+Tester: explicit won''t-do;
+    not open work.'
+- id: BL-071
+  title: Cloud sync / hosted multi-device
+  type: feature
+  status: wont_do
+  priority: 999
+  refined: true
+  estimate: null
+  notes: 'NON-GOAL. Local Docker + export/backup is the sync story. PO+Tester: explicit
+    won''t-do; not open work.'
+- id: BL-072
+  title: DIY custom reward catalog / user-set prices
+  type: feature
+  status: wont_do
+  priority: 999
+  refined: true
+  estimate: null
+  notes: 'ANTI-PATTERN (client pain). Do not build. Listed to make rejection explicit.
+    PO+Tester: explicit won''t-do; not open work.'
+- id: BL-001
+  title: v0.1 Core — auth, tasks, routines, Today/Due now, Priority rewards, Docker
+  type: feature
+  status: committed
+  priority: 100
+  refined: true
+  estimate: shipped
+  shipped_in: v0.1 / main pre-rc
+  notes: Local argon2 auth, Compose + volume, fixed Gold/Silver/Bronze.
+- id: BL-002
+  title: v0.2 Epic → Phase → Step + Period bonuses + soft miss
+  type: feature
+  status: committed
+  priority: 100
+  refined: true
+  estimate: shipped
+  shipped_in: v0.2
+- id: BL-003
+  title: v0.3 Parked Epics + LLM ingest New/Update
+  type: feature
+  status: committed
+  priority: 100
+  refined: true
+  estimate: shipped
+  shipped_in: v0.3
+- id: BL-004
+  title: v0.3.1 Reward history + Watch / Nearly done (max 6)
+  type: feature
+  status: committed
+  priority: 100
+  refined: true
+  estimate: shipped
+  shipped_in: v0.3.1
+- id: BL-005
+  title: v0.3.2 Full vs Focused Epic paths
+  type: feature
+  status: committed
+  priority: 100
+  refined: true
+  estimate: shipped
+  shipped_in: v0.3.2
+- id: BL-006
+  title: v0.4 Life modes + starter templates
+  type: feature
+  status: committed
+  priority: 100
+  refined: true
+  estimate: shipped
+  shipped_in: v0.4
+- id: BL-007
+  title: v0.5 Fixed reward shop + Afford/Need N more
+  type: feature
+  status: committed
+  priority: 100
+  refined: true
+  estimate: shipped
+  shipped_in: v0.5
+- id: BL-008
+  title: v0.5.1 One-command start scripts (start.sh / start.ps1)
+  type: feature
+  status: committed
+  priority: 100
+  refined: true
+  estimate: shipped
+  shipped_in: v0.5.1
+- id: BL-009
+  title: GitFlow long-lived branches + docs/GITFLOW.md
+  type: chore
+  status: committed
+  priority: 100
+  refined: true
+  estimate: shipped
+  shipped_in: main
+- id: BL-010
+  title: v0.6 Follow-on Epic after complete
+  type: feature
+  status: committed
+  priority: 100
+  refined: true
+  estimate: shipped
+  shipped_in: v0.6
+- id: BL-011
+  title: v0.7 Export & backup (Settings JSON merge/replace)
+  type: feature
+  status: committed
+  priority: 100
+  refined: true
+  estimate: shipped
+  shipped_in: v0.7
+- id: BL-012
+  title: v0.8 Watch pins round-trip + empty-state CTAs + roadmap bump
+  type: feature
+  status: committed
+  priority: 100
+  refined: true
+  estimate: shipped
+  shipped_in: v0.8
+- id: BL-013
+  title: v0.9 Weekly review (/review)
+  type: feature
+  status: committed
+  priority: 100
+  refined: true
+  estimate: shipped
+  shipped_in: v0.9
+- id: BL-014
+  title: Tag v1.0-rc + Shippable RC README + feature freeze
+  type: chore
+  status: committed
+  priority: 100
+  refined: true
+  estimate: shipped
+  shipped_in: v1.0-rc
