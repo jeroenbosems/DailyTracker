@@ -559,6 +559,48 @@ def complete_routine(
     return _flash_redirect("/today", " · ".join(flashes))
 
 
+@app.post("/routines/{routine_id}/skip")
+def skip_routine(
+    routine_id: int,
+    reason: str = Form(""),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    """Soft skip: advance due, no reward, no Period-bonus credit, streaks untouched."""
+    routine = db.get(Routine, routine_id)
+    if not routine or routine.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Routine not found.")
+    today = date.today()
+    reason = (reason or "").strip()
+    if not reason:
+        raise HTTPException(status_code=400, detail="Skip needs a short reason.")
+    if len(reason) > 255:
+        reason = reason[:255]
+
+    # Snapshot streak fields — must not change
+    streak_before = routine.streak
+    best_before = routine.best_streak
+    count_before = routine.completion_count
+
+    routine.last_skipped_on = today
+    routine.last_skip_reason = reason
+    routine.next_due_on = advance_due(routine.cadence, today)
+    # Explicitly do NOT: grant_reward, record_completion, bump streak/count
+    db.commit()
+    db.refresh(routine)
+    assert routine.streak == streak_before
+    assert routine.best_streak == best_before
+    assert routine.completion_count == count_before
+    return _flash_redirect(
+        "/today",
+        f"Skipped {routine.title} (no reward) — {reason}",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Epics (v0.2) — hierarchy Epic → Phase → Step
+# ---------------------------------------------------------------------------
+
 # ---------------------------------------------------------------------------
 # Epics (v0.2) — hierarchy Epic → Phase → Step
 # ---------------------------------------------------------------------------

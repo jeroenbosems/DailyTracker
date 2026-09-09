@@ -80,6 +80,8 @@ class Routine(Base):
     best_streak: Mapped[int] = mapped_column(Integer, default=0)
     completion_count: Mapped[int] = mapped_column(Integer, default=0)
     last_completed_on: Mapped[date | None] = mapped_column(Date, nullable=True)
+    last_skipped_on: Mapped[date | None] = mapped_column(Date, nullable=True)
+    last_skip_reason: Mapped[str | None] = mapped_column(String(255), nullable=True)
     next_due_on: Mapped[date] = mapped_column(Date, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
