@@ -127,10 +127,11 @@ items:
 - id: BL-031
   title: Routine skip with reason (soft; no streak wipe)
   type: feature
-  status: doing
+  status: committed
   priority: 21
   refined: true
   estimate: 1.5d
+  shipped_in: v1.1
   estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
   acceptance:
   - Skip marks period handled without completion reward

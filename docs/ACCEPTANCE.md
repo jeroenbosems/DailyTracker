@@ -109,9 +109,9 @@ Must pass before promote `test` → `release`:
 4. **Out** — email/push notifications; editing from review
 
 
-## v1.1 (current gate)
+## v1.1 (shipped — core BL-020/021/031)
 
-Must pass before promote `test` → `release` for each slice (Search first):
+Core slices shipped to main. Stretch BL-023 optional.
 
 1. **BL-020 Search** — `/search` title substring across Tasks/Routines/Epics/Steps; results link out; **does not** reorder Today (R7.1)
 2. **BL-021 Soft archive** — hide/restore Epics; never wipe progress (later PR)
