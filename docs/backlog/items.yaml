@@ -55,7 +55,7 @@ items:
 - id: BL-021
   title: Edit / archive completed Epics without delete (soft archive)
   type: feature
-  status: doing
+  status: committed
   priority: 11
   refined: true
   estimate: 1.5d
@@ -127,7 +127,7 @@ items:
 - id: BL-031
   title: Routine skip with reason (soft; no streak wipe)
   type: feature
-  status: planned
+  status: doing
   priority: 21
   refined: true
   estimate: 1.5d

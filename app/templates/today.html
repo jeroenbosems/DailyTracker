@@ -54,7 +54,13 @@
           <h3><span class="prio p{{ r.priority }}">P{{ r.priority }}</span>{{ r.title }}</h3>
           <div class="meta">{{ r.cadence | capitalize }} routine{% if r.life_mode %} · {{ life_mode_labels.get(r.life_mode, r.life_mode) }}{% endif %} · due {{ r.next_due_on.isoformat() }} · streak {{ r.streak }} (best {{ r.best_streak }}) · {{ r.completion_count }} done</div>
         </div>
-        <form method="post" action="/routines/{{ r.id }}/complete"><button type="submit">Complete</button></form>
+        <div style="display:flex;flex-direction:column;gap:0.35rem;align-items:stretch">
+          <form method="post" action="/routines/{{ r.id }}/complete"><button type="submit">Complete</button></form>
+          <form method="post" action="/routines/{{ r.id }}/skip" style="display:flex;gap:0.35rem;align-items:center">
+            <input name="reason" placeholder="Skip reason" required maxlength="255" style="min-width:8rem" />
+            <button class="ghost" type="submit">Skip</button>
+          </form>
+        </div>
       </div>
     {% endfor %}
   </div>
