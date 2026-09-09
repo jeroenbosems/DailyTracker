@@ -7,7 +7,8 @@ items:
   status: doing
   priority: 3
   refined: true
-  estimate: null
+  estimate: 0.5d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
   acceptance:
   - docs/backlog/items.yaml + README on main via GitFlow
   - PO updates status when work moves; Dev adds estimates on refined items
@@ -17,7 +18,8 @@ items:
   status: planned
   priority: 1
   refined: true
-  estimate: null
+  estimate: 0.5d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
   acceptance:
   - Fresh clone; start.sh brings up app at http://localhost:8000
   - Document result in DECISIONS or release notes; unblock v1.0 tag if green
@@ -29,7 +31,8 @@ items:
   status: planned
   priority: 2
   refined: true
-  estimate: null
+  estimate: 0.25d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
   depends_on:
   - BL-015
   acceptance:
@@ -42,7 +45,8 @@ items:
   status: planned
   priority: 10
   refined: true
-  estimate: null
+  estimate: 1.5d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
   acceptance:
   - Query by title substring; results link to detail
   - Respects auth; no Today reorder change (R7.1)
@@ -53,7 +57,8 @@ items:
   status: planned
   priority: 11
   refined: true
-  estimate: null
+  estimate: 1.5d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
   acceptance:
   - Archive hides from default Epic list; restore available
   - Never wipes Steps/progress
@@ -64,7 +69,8 @@ items:
   status: planned
   priority: 12
   refined: true
-  estimate: null
+  estimate: 2d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
   acceptance:
   - Multi-select Due now; complete or +1 day with confirm dialog
   - Max 5 items per bulk action
@@ -78,7 +84,8 @@ items:
   status: planned
   priority: 13
   refined: true
-  estimate: null
+  estimate: 1d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
   acceptance:
   - Documented shortcuts; no conflict with form inputs
   - Optional; discoverable in UI footer
@@ -88,7 +95,8 @@ items:
   status: planned
   priority: 14
   refined: true
-  estimate: null
+  estimate: 1d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
   acceptance:
   - Toggle in Settings; persists per browser
   - No new backend tables required if cookie/localStorage
@@ -98,7 +106,8 @@ items:
   status: planned
   priority: 15
   refined: true
-  estimate: null
+  estimate: 0.5d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
   acceptance:
   - Print stylesheet for /review
   - No external PDF service
@@ -108,7 +117,8 @@ items:
   status: planned
   priority: 20
   refined: true
-  estimate: null
+  estimate: 1.5d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
   acceptance:
   - Rename the four modes in Settings; ids stable
   - No unbounded user tag taxonomy
@@ -119,7 +129,8 @@ items:
   status: planned
   priority: 21
   refined: true
-  estimate: null
+  estimate: 1.5d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
   acceptance:
   - Skip marks period handled without completion reward
   - Best streak untouched; Period bonus rules unchanged
@@ -129,7 +140,8 @@ items:
   status: planned
   priority: 22
   refined: true
-  estimate: null
+  estimate: 1.5d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
   acceptance:
   - Completion over time from Step completions
   - No analytics outbound
@@ -139,7 +151,8 @@ items:
   status: planned
   priority: 40
   refined: true
-  estimate: null
+  estimate: 2d
+  estimate_notes: time-to-get-it-right (shippable quality, tests+docs); not a spike
   acceptance:
   - Usable Today on narrow viewports
   - No native mobile app (non-goal)
