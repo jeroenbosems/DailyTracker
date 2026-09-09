@@ -79,7 +79,7 @@ Multi-user, cloud sync, mobile apps, OAuth / IdP, custom reward economies, Jira/
 | **v0.8** | Watch pins in backup; empty-state CTAs; roadmap hygiene | Shipped |
 | **v0.9** | Weekly review (`/review`) read-only | Shipped |
 | **v1.0-rc** | Shippable cut + start scripts | Tagged |
-| **v1.1** | Search; soft Epic archive; routine skip | Current |
+| **v1.1** | Search; soft Epic archive; routine skip | Shipped (core) |
 
 
 Also: **Watch / Nearly done** never outranks Due now or Active Epic on Today (R7.1). Pins store Steps and open Tasks only.
