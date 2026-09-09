@@ -68,13 +68,19 @@
         {% endif %}
       </div>
       <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+        {% if epic.archived %}<span class="badge bronze">Archived</span>{% endif %}
         {% if epic.completed %}
           <a class="btn primary" href="/epics/{{ epic.id }}/follow-on">Start follow-on</a>
         {% endif %}
-        {% if is_active and not epic.completed %}
+        {% if is_active and not epic.completed and not epic.archived %}
           <form method="post" action="/epics/{{ epic.id }}/park"><button class="ghost" type="submit">Park</button></form>
-        {% elif not is_active and not epic.completed %}
+        {% elif not is_active and not epic.completed and not epic.archived %}
           <form method="post" action="/epics/{{ epic.id }}/activate"><button class="primary" type="submit">Activate</button></form>
+        {% endif %}
+        {% if epic.archived %}
+          <form method="post" action="/epics/{{ epic.id }}/restore"><button class="primary" type="submit">Restore</button></form>
+        {% else %}
+          <form method="post" action="/epics/{{ epic.id }}/archive"><button class="ghost" type="submit">Archive</button></form>
         {% endif %}
         <a class="btn ghost" href="/epics">All Epics</a>
       </div>
