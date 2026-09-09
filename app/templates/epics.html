@@ -41,7 +41,14 @@
 
   <div class="card">
     <h2>Your Epics</h2>
-    <p class="muted">Month-scale ambitions broken into Phases and day-scale Steps. Activate one for Today focus; others stay Parked without punishment.</p>
+    <p class="muted">Month-scale ambitions broken into Phases and day-scale Steps. Activate one for Today focus; others stay Parked without punishment. Archive hides an Epic without wiping progress.</p>
+    <p class="meta">
+      {% if show_archived %}
+        Showing archived · <a href="/epics">Hide archived</a>
+      {% else %}
+        <a href="/epics?show_archived=1">Show archived ({{ archived_count }})</a>
+      {% endif %}
+    </p>
     {% if not rows %}
       <p class="empty">No Epics yet — start with a clear outcome and a few Phases.</p>
       <p style="margin-top:0.75rem"><a class="btn primary" href="#new-epic">Create an Epic</a></p>
@@ -54,6 +61,7 @@
             {% if row.epic.path == "focused" %}<span class="badge bronze">Focused</span>{% else %}<span class="badge silver">Full</span>{% endif %}
             {% if row.epic.legendary %}<span class="badge silver">Legendary</span>{% endif %}
             <a href="/epics/{{ row.epic.id }}">{{ row.epic.title }}</a>
+            {% if row.epic.archived %}<span class="badge bronze">Archived</span>{% endif %}
             {% if row.epic.completed %}<span class="meta"> · done</span>{% endif %}
           </h3>
           <div class="meta">
@@ -67,9 +75,18 @@
             <form method="post" action="/epics/{{ row.epic.id }}/park">
               <button class="ghost" type="submit">Park</button>
             </form>
-          {% elif not row.active and not row.epic.completed %}
+          {% elif not row.active and not row.epic.completed and not row.epic.archived %}
             <form method="post" action="/epics/{{ row.epic.id }}/activate">
               <button type="submit">Activate</button>
+            </form>
+          {% endif %}
+          {% if row.epic.archived %}
+            <form method="post" action="/epics/{{ row.epic.id }}/restore">
+              <button type="submit">Restore</button>
+            </form>
+          {% else %}
+            <form method="post" action="/epics/{{ row.epic.id }}/archive">
+              <button class="ghost" type="submit">Archive</button>
             </form>
           {% endif %}
         </div>
