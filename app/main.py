@@ -565,16 +565,23 @@ def complete_routine(
 
 
 @app.get("/epics", response_class=HTMLResponse)
-def epics_list(request: Request, db: Session = Depends(get_db), user: User = Depends(require_user)):
-    epics = db.scalars(
+def epics_list(
+    request: Request,
+    show_archived: str = "",
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    include_archived = show_archived in {"1", "true", "on", "yes"}
+    all_epics = db.scalars(
         select(Epic)
         .where(Epic.user_id == user.id)
         .options(joinedload(Epic.phases).joinedload(Phase.steps))
         .order_by(Epic.created_at.desc())
     ).unique().all()
-    by_id = {e.id: e for e in epics}
+    by_id = {e.id: e for e in all_epics}
+    visible = [e for e in all_epics if include_archived or not e.archived]
     rows = []
-    for epic in epics:
+    for epic in visible:
         done, total, pct = epic_progress(epic)
         parent = by_id.get(epic.parent_epic_id) if epic.parent_epic_id else None
         rows.append(
@@ -587,7 +594,8 @@ def epics_list(request: Request, db: Session = Depends(get_db), user: User = Dep
                 "parent": parent,
             }
         )
-    parent_choices = [e for e in epics if not e.completed]
+    parent_choices = [e for e in all_epics if not e.completed and not e.archived]
+    archived_count = sum(1 for e in all_epics if e.archived)
     return templates.TemplateResponse(
         "epics.html",
         {
@@ -599,6 +607,8 @@ def epics_list(request: Request, db: Session = Depends(get_db), user: User = Dep
             "life_modes": LIFE_MODES,
             "life_mode_labels": LIFE_MODE_LABELS,
             "starter_templates": _list_starter_templates(),
+            "show_archived": include_archived,
+            "archived_count": archived_count,
         },
     )
 
@@ -994,6 +1004,44 @@ def park_epic(
         db.commit()
         return _flash_redirect(f"/epics/{epic.id}", f"Parked: {epic.title}")
     return _flash_redirect(f"/epics/{epic.id}", f"Already Parked: {epic.title}")
+
+@app.post("/epics/{epic_id}/archive")
+def archive_epic(
+    epic_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    """Soft archive — hide from default list; never wipe progress."""
+    epic = db.get(Epic, epic_id)
+    if not epic or epic.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Epic not found.")
+    # Snapshot progress must remain
+    phase_ids = [p.id for p in epic.phases]
+    step_count = sum(len(p.steps) for p in epic.phases)
+    epic.archived = True
+    if user.active_epic_id == epic.id:
+        user.active_epic_id = None
+    db.commit()
+    db.refresh(epic)
+    assert epic.archived is True
+    assert len(epic.phases) == len(phase_ids)
+    assert sum(len(p.steps) for p in epic.phases) == step_count
+    return _flash_redirect("/epics", f"Archived (progress kept): {epic.title}")
+
+
+@app.post("/epics/{epic_id}/restore")
+def restore_epic(
+    epic_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    epic = db.get(Epic, epic_id)
+    if not epic or epic.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Epic not found.")
+    epic.archived = False
+    db.commit()
+    return _flash_redirect(f"/epics/{epic.id}", f"Restored: {epic.title}")
+
 
 @app.post("/epics/{epic_id}/path")
 def set_epic_path(
