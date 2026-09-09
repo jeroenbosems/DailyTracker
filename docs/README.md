@@ -24,3 +24,7 @@
 3. Tester gates on **`test`** against **ACCEPTANCE.md** (see [GITFLOW.md](./GITFLOW.md)).
 4. Ship path: `dev` → `test` (CLEAR) → `release` → `main`.
 5. If chat and docs disagree, **docs win** until PO revises docs.
+
+## Backlog
+
+Product backlog (statuses + prioritized items): [`docs/backlog/`](./backlog/).

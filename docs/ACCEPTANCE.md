@@ -99,7 +99,7 @@ Must pass before promote `test` → `release`:
 4. **Out** — no new game systems
 
 
-## v0.9 (current gate)
+## v0.9 (shipped)
 
 Must pass before promote `test` → `release`:
 
@@ -107,6 +107,17 @@ Must pass before promote `test` → `release`:
 2. **Entry** — nav link + Today footer link only (no Today board clutter)
 3. **CTA** — one primary “Back to Today”
 4. **Out** — email/push notifications; editing from review
+
+
+## v1.1 (current gate)
+
+Must pass before promote `test` → `release` for each slice (Search first):
+
+1. **BL-020 Search** — `/search` title substring across Tasks/Routines/Epics/Steps; results link out; **does not** reorder Today (R7.1)
+2. **BL-021 Soft archive** — hide/restore Epics; never wipe progress (later PR)
+3. **BL-031 Routine skip** — soft skip with reason; no streak wipe (later PR)
+
+Out: dual Active, heat-map, DIY/cloud/multi-user.
 
 ## How to report
 
