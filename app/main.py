@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session, joinedload
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.review import build_weekly_review
+from app.search import search_user
 from app.backup import (
     REPLACE_CONFIRM_PHRASE,
     BackupError,
@@ -1129,6 +1130,31 @@ def create_step(
     )
     db.commit()
     return _flash_redirect(f"/epics/{phase.epic_id}", "Step created")
+
+
+# ---------------------------------------------------------------------------
+# Search (v1.1 BL-020)
+# ---------------------------------------------------------------------------
+
+
+@app.get("/search", response_class=HTMLResponse)
+def search_page(
+    request: Request,
+    q: str = "",
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    hits = search_user(db, user, q)
+    return templates.TemplateResponse(
+        "search.html",
+        {
+            "request": request,
+            "user": user,
+            "q": (q or "").strip(),
+            "hits": hits,
+            "flash": _read_flash(request),
+        },
+    )
 
 
 # ---------------------------------------------------------------------------
