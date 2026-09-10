@@ -32,10 +32,10 @@ Users fill days with **useful** work, feel **progress** and fair **reward**, and
 | **Priority reward** | Fixed Gold / Silver / Bronze by priority 1 / 2 / 3 | On completion |
 | **Period bonus** | N-of-M daily or weekly completion bonus (fixed; weekly > daily) | Day / week |
 | **Life mode** | Optional tag: work / health / home / learning — Today filter chips | Item / Epic |
-| **Reward shop** | Fixed catalog of real-life breaks/treats bought with earned points | Spend |
-| **Redemption** | Record of a shop spend; optional “Done in real life” flag | — |
+| **Reward shop** | Fixed catalog of **cosmetics / titles / flair** bought with earned points (GW2-style; no IRL vouchers) | Spend |
+| **Redemption** | Record of a shop unlock; equip separately (Wear) | — |
 
-Do **not** use game-first UI copy (loot, chests, pets, HP). Game vocabulary may appear only in MOTIVATION.md as rationale.
+Avoid loot/chests/pets/HP copy. **Titles, themes, badge frames, flair** are in-scope shop fantasy (GW2-style). See `GAMIFY_LEAN.md`.
 
 ## Core loop
 
@@ -45,7 +45,7 @@ Do **not** use game-first UI copy (loot, chests, pets, HP). Game vocabulary may 
 4. Hit N-of-M → **Period bonus** (enough is enough; extras optional).
 5. Finish Phase → intermediate real deliverable + celebration.
 6. Finish Epic → identity / capability outcome + optional follow-on Epic.
-7. Optionally spend points in the **Reward shop** on a fixed real-life treat (then mark Done in real life).
+7. Optionally spend points in the **Reward shop** on fixed cosmetics / titles (then Wear).
 
 ## Principles
 
@@ -80,6 +80,8 @@ Multi-user, cloud sync, mobile apps, OAuth / IdP, custom reward economies, Jira/
 | **v0.9** | Weekly review (`/review`) read-only | Shipped |
 | **v1.0-rc** | Shippable cut + start scripts | Tagged |
 | **v1.1** | Search; soft Epic archive; routine skip | Shipped (core) |
+| **v1.1.1** | One-action Docker start (`./start.sh`); Mac Start here | Shipped |
+| **v1.2** | Gamify-lean: cosmetic/title shop; lean template/LLM create; Step celebration (see GAMIFY_LEAN.md) | In progress |
 
 
 Also: **Watch / Nearly done** never outranks Due now or Active Epic on Today (R7.1). Pins store Steps and open Tasks only.

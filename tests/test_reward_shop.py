@@ -1,6 +1,8 @@
-"""v0.5 — fixed reward shop: underfunded reject, redeem decreases points, fulfilled_irl toggle."""
+"""v1.2 G1 — cosmetic shop: fixed SKUs, underfunded reject, no IRL fulfill UI."""
 
 from __future__ import annotations
+
+from pathlib import Path
 
 import pytest
 from sqlalchemy import create_engine, select
@@ -10,12 +12,13 @@ from app.auth import hash_password
 from app.database import Base
 from app.models import Redemption, User
 from app.shop import (
+    LEGACY_IRL_IDS,
     SHOP_CATALOG,
     SHOP_CATALOG_ORDER,
     ShopError,
     catalog_items,
+    history_label,
     redeem,
-    set_fulfilled_irl,
 )
 
 
@@ -33,73 +36,53 @@ def _user(db: Session, points: int = 0) -> User:
     return user
 
 
-def test_catalog_is_fixed_and_complete():
+def test_catalog_is_fixed_cosmetics_only():
     items = catalog_items()
     assert [i.id for i in items] == list(SHOP_CATALOG_ORDER)
-    expected = {
-        "break_15": 40,
-        "snack": 80,
-        "media_ep": 100,
-        "hobby_hour": 150,
-        "meal_out": 300,
-        "half_day": 500,
-    }
-    for cid, cost in expected.items():
-        assert SHOP_CATALOG[cid].cost == cost
-        assert SHOP_CATALOG[cid].label  # non-empty adult productivity label
+    assert set(SHOP_CATALOG) == set(SHOP_CATALOG_ORDER)
+    assert not (set(SHOP_CATALOG) & LEGACY_IRL_IDS)
+    for item in items:
+        assert item.kind in {"theme", "title", "badge_frame", "today_flair"}
+        assert item.cost > 0
+        assert item.unlock_payload
 
 
 def test_underfunded_redeem_rejected():
     db = _session()
-    user = _user(db, points=39)  # break_15 costs 40
+    user = _user(db, points=59)  # frame_bronze costs 60
     with pytest.raises(ShopError) as exc:
-        redeem(db, user, "break_15")
+        redeem(db, user, "frame_bronze")
     assert "not enough points" in exc.value.message.lower()
     db.rollback()
     db.refresh(user)
-    assert user.total_points == 39
+    assert user.total_points == 59
     assert db.scalars(select(Redemption).where(Redemption.user_id == user.id)).all() == []
 
 
 def test_successful_redeem_decreases_points():
     db = _session()
     user = _user(db, points=250)
-    row = redeem(db, user, "hobby_hour")  # 150
+    row = redeem(db, user, "title_pathfinder")  # 100
     db.commit()
     db.refresh(user)
     db.refresh(row)
-    assert user.total_points == 100
-    assert row.catalog_id == "hobby_hour"
-    assert row.points_spent == 150
-    assert row.fulfilled_irl is False
-    rows = db.scalars(select(Redemption).where(Redemption.user_id == user.id)).all()
-    assert len(rows) == 1
+    assert user.total_points == 150
+    assert row.catalog_id == "title_pathfinder"
+    assert row.points_spent == 100
 
-    # Second redeem that would overspend
     with pytest.raises(ShopError):
-        redeem(db, user, "meal_out")  # 300 > 100
+        redeem(db, user, "title_finisher")  # 250 > 150
     db.rollback()
     db.refresh(user)
-    assert user.total_points == 100
+    assert user.total_points == 150
 
 
-def test_fulfilled_irl_toggle():
+def test_legacy_irl_ids_not_redeemable():
     db = _session()
-    user = _user(db, points=80)
-    row = redeem(db, user, "snack")
-    db.commit()
-    db.refresh(row)
-    assert row.fulfilled_irl is False
-
-    updated = set_fulfilled_irl(db, user, row.id, True)
-    db.commit()
-    db.refresh(updated)
-    assert updated.fulfilled_irl is True
-
-    updated = set_fulfilled_irl(db, user, row.id, False)
-    db.commit()
-    db.refresh(updated)
-    assert updated.fulfilled_irl is False
+    user = _user(db, points=999)
+    with pytest.raises(ShopError):
+        redeem(db, user, "snack")
+    assert "Legacy IRL" in history_label("snack")
 
 
 def test_unknown_catalog_id_rejected():
@@ -112,8 +95,7 @@ def test_unknown_catalog_id_rejected():
     assert user.total_points == 999
 
 
-def test_http_shop_redeem_and_fulfill(tmp_path, monkeypatch):
-    """Integration: underfunded → 400; redeem decreases pts; fulfilled toggle."""
+def test_http_shop_unlock_no_irl(tmp_path, monkeypatch):
     from datetime import date
 
     from fastapi.testclient import TestClient
@@ -124,7 +106,7 @@ def test_http_shop_redeem_and_fulfill(tmp_path, monkeypatch):
     import app.main as main
 
     db_path = tmp_path / "dailytracker.db"
-    monkeypatch.setenv("SESSION_SECRET", "test-secret-for-v05")
+    monkeypatch.setenv("SESSION_SECRET", "test-secret-for-g1")
     monkeypatch.setattr(config, "DATA_DIR", tmp_path)
     monkeypatch.setattr(config, "DATABASE_URL", f"sqlite:///{db_path}")
     monkeypatch.setattr(database, "DATABASE_URL", f"sqlite:///{db_path}")
@@ -156,7 +138,6 @@ def test_http_shop_redeem_and_fulfill(tmp_path, monkeypatch):
         )
         assert r.status_code == 303
 
-        # Seed points via a completed task (Gold = 50) — still underfunded for snack (80)
         client.post(
             "/tasks",
             data={
@@ -178,13 +159,12 @@ def test_http_shop_redeem_and_fulfill(tmp_path, monkeypatch):
 
         under = client.post(
             "/shop/redeem",
-            data={"catalog_id": "snack"},
+            data={"catalog_id": "theme_aurora"},
             follow_redirects=False,
         )
         assert under.status_code == 400
         assert "not enough points" in under.text.lower()
 
-        # Top up points and redeem successfully
         db = database.SessionLocal()
         try:
             user = db.scalar(select(User).where(User.username == "alice"))
@@ -196,7 +176,7 @@ def test_http_shop_redeem_and_fulfill(tmp_path, monkeypatch):
 
         ok = client.post(
             "/shop/redeem",
-            data={"catalog_id": "snack"},
+            data={"catalog_id": "theme_aurora"},
             follow_redirects=False,
         )
         assert ok.status_code == 303
@@ -208,55 +188,47 @@ def test_http_shop_redeem_and_fulfill(tmp_path, monkeypatch):
             assert user is not None
             assert user.total_points == 120  # 200 - 80
             red = db.scalars(select(Redemption).where(Redemption.user_id == user.id)).one()
-            assert red.catalog_id == "snack"
-            assert red.fulfilled_irl is False
-            rid = red.id
+            assert red.catalog_id == "theme_aurora"
         finally:
             db.close()
 
-        toggle = client.post(
-            f"/shop/redemptions/{rid}/fulfilled",
+        # IRL fulfill route gone
+        gone = client.post(
+            "/shop/redemptions/1/fulfilled",
             data={"fulfilled_irl": "on"},
             follow_redirects=False,
         )
-        assert toggle.status_code == 303
+        assert gone.status_code == 404
 
-        db = database.SessionLocal()
-        try:
-            red = db.get(Redemption, rid)
-            assert red is not None
-            assert red.fulfilled_irl is True
-        finally:
-            db.close()
+        shop = client.get("/shop")
+        assert shop.status_code == 200
+        assert "Cosmetic shop" in shop.text
+        assert "Done in real life" not in shop.text
+        assert "break_15" not in shop.text
+        assert "Aurora theme" in shop.text
 
-        # Today: pts link to shop; no shop section above Due now
         today = client.get("/today")
         assert today.status_code == 200
         body = today.text
         assert 'href="/shop"' in body
-        assert "class=\"points\"" in body or "class='points'" in body or 'class="points"' in body
         assert "Due now" in body
-        # Must not inject a Reward shop card before Due now
+        assert "Cosmetic shop" not in body.split("Due now")[0]
         assert "Reward shop" not in body.split("Due now")[0]
         assert body.index("Due now") < body.index("Active Epic")
     finally:
         main.app.dependency_overrides.clear()
 
 
-
-
 def test_shop_template_afford_need_copy():
     from jinja2 import Environment, FileSystemLoader, select_autoescape
-    from pathlib import Path
     from types import SimpleNamespace
-    from app.shop import catalog_items
 
     env = Environment(
         loader=FileSystemLoader(str(Path("app/templates"))),
         autoescape=select_autoescape(["html"]),
     )
     tmpl = env.get_template("shop.html")
-    user = SimpleNamespace(total_points=50, username="u")
+    user = SimpleNamespace(total_points=70, username="u")
     html = tmpl.render(
         request=SimpleNamespace(),
         user=user,
@@ -264,6 +236,8 @@ def test_shop_template_afford_need_copy():
         history=[],
         flash=None,
     )
-    assert "Afford" in html
-    assert "Need 30 more" in html  # snack 80 - 50
-    assert "Need 50 more" in html  # media_ep 100 - 50
+    assert "Afford" in html  # frame_bronze 60
+    assert "Need 10 more" in html  # theme_aurora 80 - 70
+    assert "Need 20 more" in html  # flair_spark 90 - 70
+    assert "Done in real life" not in html
+    assert "Unlock" in html
