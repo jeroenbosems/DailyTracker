@@ -2,6 +2,12 @@
 
 Append-only. Newest first. Chat opinions do not count until recorded here and reflected in REQUIREMENTS.md / PRODUCT.md.
 
+## 2026-09-10 — Mac-clear Start here
+
+**Decision:** README Start here calls out **Mac / Linux** vs **Windows** explicitly; Mac tip points at Docker Desktop for Mac + whale-idle before `./start.sh`.
+**Why:** Client on Mac asked for clear Mac instructions (same command as Linux).
+**Affects:** README; scripts/start.sh error hints
+
 ## 2026-09-10 — One-action Docker start at repo root
 
 **Decision:** Add root `./start.sh` / `./start.ps1` wrappers, wait-for-ready messaging, `scripts/stop.sh`, compose healthcheck, and VS Code build task. README leads with **Start here**.

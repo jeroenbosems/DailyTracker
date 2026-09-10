@@ -9,13 +9,15 @@ echo "Daily Tracker — starting with Docker…"
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "Error: Docker is not installed (or not on PATH)." >&2
-  echo "Install Docker Desktop (or Engine), then run: ./start.sh" >&2
+  echo "Mac: install Docker Desktop for Mac, open it, then run: ./start.sh" >&2
+  echo "Linux: install Docker Engine (or Desktop), then run: ./start.sh" >&2
   exit 1
 fi
 
 if ! docker info >/dev/null 2>&1; then
   echo "Error: Docker is installed but not running." >&2
-  echo "Start Docker Desktop, wait until it is ready, then run: ./start.sh" >&2
+  echo "Mac: open Docker Desktop and wait until it is ready, then run: ./start.sh" >&2
+  echo "Linux: start the Docker daemon, then run: ./start.sh" >&2
   exit 1
 fi
 
