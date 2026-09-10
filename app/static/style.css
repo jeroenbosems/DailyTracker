@@ -189,3 +189,23 @@ a.btn.ghost:hover { text-decoration: none; border-color: var(--accent); }
 }
 .page-footer { margin: 1.5rem 0 0.5rem; }
 .shortcuts-legend .kbd { margin: 0 0.1rem; }
+
+/* G2 cosmetics */
+html[data-theme="aurora"] {
+  --bg: #0c1220; --panel: #152238; --panel-2: #1c2f4a; --accent: #6ec8ff; --accent-2: #3a9fd4;
+}
+html[data-theme="aurora"] body {
+  background: radial-gradient(1000px 500px at 20% -10%, #1a3a5c, var(--bg));
+}
+html[data-theme="ember"] {
+  --bg: #140e0c; --panel: #241816; --panel-2: #32201c; --accent: #ff9a5c; --accent-2: #d46a3a;
+}
+html[data-theme="ember"] body {
+  background: radial-gradient(1000px 500px at 20% -10%, #4a2818, var(--bg));
+}
+.points.frame-bronze { border-color: #c48a5a; box-shadow: 0 0 0 1px #c48a5a55; }
+.points.frame-silver { border-color: #c0c7d1; box-shadow: 0 0 0 1px #c0c7d188; }
+.card.today-flair.flair-spark {
+  border-color: var(--accent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
+}

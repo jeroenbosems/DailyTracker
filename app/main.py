@@ -66,10 +66,15 @@ from app.rewards import grant_reward
 from app.shop import (
     ShopError,
     catalog_items,
-    get_catalog_item,
+    flair_class_for_user,
+    frame_class_for_user,
     history_label,
     is_legacy_irl,
     redeem,
+    theme_payload_for_user,
+    title_label_for_user,
+    unlocked_ids,
+    wear,
 )
 from app.routines_logic import CADENCES, advance_due, streak_continues
 from app.watch_logic import (
@@ -87,6 +92,10 @@ BASE_DIR = Path(__file__).resolve().parent
 REPO_ROOT = BASE_DIR.parent
 STARTER_TEMPLATES_DIR = REPO_ROOT / "docs" / "templates"
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+templates.env.globals["title_label_for_user"] = title_label_for_user
+templates.env.globals["theme_payload_for_user"] = theme_payload_for_user
+templates.env.globals["frame_class_for_user"] = frame_class_for_user
+templates.env.globals["flair_class_for_user"] = flair_class_for_user
 
 app = FastAPI(title="Daily Tracker", docs_url=None, redoc_url=None, openapi_url=None)
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
@@ -1527,12 +1536,14 @@ def shop_view(request: Request, db: Session = Depends(get_db), user: User = Depe
                 "legacy": is_legacy_irl(row.catalog_id),
             }
         )
+    owned = unlocked_ids(db, user)
     return templates.TemplateResponse(
         "shop.html",
         {
             "request": request,
             "user": user,
             "catalog": catalog_items(),
+            "owned": owned,
             "history": rows,
             "flash": _read_flash(request),
         },
@@ -1550,6 +1561,22 @@ def shop_redeem(
         db.commit()
         label = history_label(row.catalog_id)
         return _flash_redirect("/shop", f"Unlocked: {label} (−{row.points_spent} pts)")
+    except ShopError as exc:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=exc.message) from None
+
+
+@app.post("/shop/wear")
+def shop_wear(
+    catalog_id: str = Form(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    """One-click equip — catalog_id only (no multi-field form)."""
+    try:
+        item = wear(db, user, catalog_id)
+        db.commit()
+        return _flash_redirect("/shop", f"Wearing: {item.label}")
     except ShopError as exc:
         db.rollback()
         raise HTTPException(status_code=400, detail=exc.message) from None

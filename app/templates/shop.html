@@ -14,8 +14,8 @@
         <a href="/import">Import</a>
         <a href="/settings">Settings</a>
       </nav>
-      <a class="points" href="/shop">{{ user.total_points }} pts</a>
-      <span class="muted">{{ user.username }}</span>
+      <a class="points {{ frame_class_for_user(user) }}" href="/shop">{{ user.total_points }} pts</a>
+      <span class="muted">{{ user.username }}{% if title_label_for_user(user) %} · {{ title_label_for_user(user) }}{% endif %}</span>
       <form method="post" action="/logout"><button class="ghost" type="submit">Sign out</button></form>
     </div>
   </div>
@@ -24,31 +24,49 @@
 
   <div class="card">
     <h2>Cosmetic shop</h2>
-    <p class="muted">Spend earned points on a <strong>fixed</strong> catalog of themes, titles, badge frames, and Today flair — not IRL breaks. Unlock here; Wear comes in the next slice.</p>
+    <p class="muted">Fixed catalog — unlock with points, then <strong>Wear</strong> (one click). No IRL breaks, no DIY.</p>
     <p class="meta" style="margin-bottom:0.75rem">Balance: <strong>{{ user.total_points }}</strong> pts</p>
     {% for item in catalog %}
       {% set need = item.cost - user.total_points %}
+      {% set is_owned = item.id in owned %}
+      {% set is_worn =
+        (item.kind == 'theme' and user.equipped_theme == item.id)
+        or (item.kind == 'title' and user.equipped_title == item.id)
+        or (item.kind == 'badge_frame' and user.equipped_badge_frame == item.id)
+        or (item.kind == 'today_flair' and user.equipped_today_flair == item.id)
+      %}
       <div class="item">
         <div>
           <h3>{{ item.label }}</h3>
           <div class="meta">{{ item.cost }} pts · {{ item.kind }} · fixed catalog</div>
-          {% if need <= 0 %}
+          {% if is_owned %}
+            <div class="meta"><span class="badge gold">Unlocked</span>{% if is_worn %} · wearing{% endif %}</div>
+          {% elif need <= 0 %}
             <div class="meta"><span class="badge gold">Afford</span> You can unlock this now.</div>
           {% else %}
-            <div class="meta"><span class="badge silver">Need {{ need }} more</span> Earn {{ need }} pts to unlock.</div>
+            <div class="meta"><span class="badge silver">Need {{ need }} more</span></div>
           {% endif %}
         </div>
-        <form method="post" action="/shop/redeem">
-          <input type="hidden" name="catalog_id" value="{{ item.id }}" />
-          <button type="submit" {% if need > 0 %}disabled title="Need {{ need }} more points"{% endif %}>Unlock</button>
-        </form>
+        <div style="display:flex;flex-direction:column;gap:0.35rem">
+          {% if is_owned %}
+            <form method="post" action="/shop/wear">
+              <input type="hidden" name="catalog_id" value="{{ item.id }}" />
+              <button type="submit" {% if is_worn %}disabled{% endif %}>Wear</button>
+            </form>
+          {% else %}
+            <form method="post" action="/shop/redeem">
+              <input type="hidden" name="catalog_id" value="{{ item.id }}" />
+              <button type="submit" {% if need > 0 %}disabled title="Need {{ need }} more points"{% endif %}>Unlock</button>
+            </form>
+          {% endif %}
+        </div>
       </div>
     {% endfor %}
   </div>
 
   <div class="card">
     <h2>Unlock history</h2>
-    <p class="muted">Points are spent at unlock time. Legacy IRL redemptions (if any) stay listed as retired — no fulfill toggle.</p>
+    <p class="muted">Points spent at unlock. Legacy IRL rows (if any) are retired labels only.</p>
     {% if not history %}
       <p class="empty">No unlocks yet — earn points on Today, then grab a title or theme here.</p>
       <p style="margin-top:0.75rem"><a class="btn primary" href="/today">Earn points on Today</a></p>
