@@ -1,0 +1,21 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start Daily Tracker (Docker)",
+      "type": "shell",
+      "command": "./start.sh",
+      "windows": { "command": "powershell -ExecutionPolicy Bypass -File ./start.ps1" },
+      "group": { "kind": "build", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Stop Daily Tracker (Docker)",
+      "type": "shell",
+      "command": "./scripts/stop.sh",
+      "windows": { "command": "docker compose down" },
+      "problemMatcher": []
+    }
+  ]
+}

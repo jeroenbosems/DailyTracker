@@ -1,26 +1,35 @@
 # Daily Tracker
 
+## Start here (one action)
+
+**Requires Docker Desktop (or Engine) running.**
+
+```bash
+./start.sh
+```
+
+That builds the image, starts the container, and prints **http://localhost:8000**. First visit creates your local account.
+
+- Windows: `.\start.ps1` (or `scripts\start.ps1`)
+- Same script also at `./start.sh`
+- VS Code: Terminal → Run Build Task → **Start Daily Tracker (Docker)**
+- Stop: `./scripts/stop.sh` or `docker compose down`
+
+No env files, no manual `compose` commands needed for normal use.
+
+---
+
 Solo local task + routine tracker (daily / weekly / monthly / yearly) with clear next-step progress, soft streaks, and **fixed standardized rewards** (not DIY points). Hierarchy: **Epic → Phase → Step** plus Period bonuses.
 
 Designed to run everywhere via Docker. One user, data on a named volume, no cloud identity, no outbound telemetry by default.
 
 ## Quick start
 
-Open in VS Code → run start script.
+Same as **Start here** above:
 
 ```bash
-./scripts/start.sh
+./start.sh
 ```
-
-Windows (PowerShell): `scripts/start.ps1`
-
-The script checks that Docker is running, starts the app with `compose up --build -d`, and prints http://localhost:8000. No extra config.
-
-1. First visit creates your **local** account (username + password).
-2. Add tasks and routines.
-3. Use **Due now** to see overdue / due-today work, ordered by priority (needed work first).
-4. Completing items grants Bronze / Silver / Gold rewards (10 / 25 / 50 pts by priority).
-
 
 ## Shippable RC (`v1.0-rc`)
 
@@ -29,7 +38,7 @@ Stable, workable cut for real use. Feature freeze to **bugfixes only** after the
 **Run (only required path):**
 
 ```bash
-./scripts/start.sh
+./start.sh
 ```
 
 Windows: `scripts/start.ps1`
