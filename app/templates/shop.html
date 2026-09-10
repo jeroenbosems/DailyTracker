@@ -23,34 +23,34 @@
   {% if flash %}<div class="flash">{{ flash }}</div>{% endif %}
 
   <div class="card">
-    <h2>Reward shop</h2>
-    <p class="muted">Spend earned points on a <strong>fixed</strong> catalog — real breaks and treats, not DIY prices. Earn points by completing Due now work and Active Epic Steps; redeem here when you’ve earned them.</p>
+    <h2>Cosmetic shop</h2>
+    <p class="muted">Spend earned points on a <strong>fixed</strong> catalog of themes, titles, badge frames, and Today flair — not IRL breaks. Unlock here; Wear comes in the next slice.</p>
     <p class="meta" style="margin-bottom:0.75rem">Balance: <strong>{{ user.total_points }}</strong> pts</p>
     {% for item in catalog %}
       {% set need = item.cost - user.total_points %}
       <div class="item">
         <div>
           <h3>{{ item.label }}</h3>
-          <div class="meta">{{ item.cost }} pts · fixed catalog</div>
+          <div class="meta">{{ item.cost }} pts · {{ item.kind }} · fixed catalog</div>
           {% if need <= 0 %}
-            <div class="meta"><span class="badge gold">Afford</span> You can redeem this now.</div>
+            <div class="meta"><span class="badge gold">Afford</span> You can unlock this now.</div>
           {% else %}
             <div class="meta"><span class="badge silver">Need {{ need }} more</span> Earn {{ need }} pts to unlock.</div>
           {% endif %}
         </div>
         <form method="post" action="/shop/redeem">
           <input type="hidden" name="catalog_id" value="{{ item.id }}" />
-          <button type="submit" {% if need > 0 %}disabled title="Need {{ need }} more points"{% endif %}>Redeem</button>
+          <button type="submit" {% if need > 0 %}disabled title="Need {{ need }} more points"{% endif %}>Unlock</button>
         </form>
       </div>
     {% endfor %}
   </div>
 
   <div class="card">
-    <h2>Redemption history</h2>
-    <p class="muted">Mark each reward “Done in real life” when you’ve actually taken the break or treat. Points are already spent at redeem time.</p>
+    <h2>Unlock history</h2>
+    <p class="muted">Points are spent at unlock time. Legacy IRL redemptions (if any) stay listed as retired — no fulfill toggle.</p>
     {% if not history %}
-      <p class="empty">No redemptions yet — earn points on Today, then redeem a small break here.</p>
+      <p class="empty">No unlocks yet — earn points on Today, then grab a title or theme here.</p>
       <p style="margin-top:0.75rem"><a class="btn primary" href="/today">Earn points on Today</a></p>
     {% endif %}
     {% for row in history %}
@@ -60,16 +60,9 @@
           <div class="meta">
             −{{ row.redemption.points_spent }} pts
             {% if row.redemption.created_at %} · {{ row.redemption.created_at.strftime("%Y-%m-%d %H:%M") }} UTC{% endif %}
-            {% if row.redemption.fulfilled_irl %} · done in real life{% else %} · pending{% endif %}
+            {% if row.legacy %} · legacy IRL (retired){% endif %}
           </div>
         </div>
-        <form method="post" action="/shop/redemptions/{{ row.redemption.id }}/fulfilled" style="display:flex;align-items:center;gap:0.5rem">
-          <label style="margin:0;display:flex;align-items:center;gap:0.35rem;color:var(--text)">
-            <input type="checkbox" name="fulfilled_irl" value="on" {% if row.redemption.fulfilled_irl %}checked{% endif %} onchange="this.form.submit()" />
-            Done in real life
-          </label>
-          <noscript><button type="submit" class="ghost">Save</button></noscript>
-        </form>
       </div>
     {% endfor %}
   </div>

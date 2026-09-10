@@ -93,7 +93,7 @@ items:
 - id: BL-024
   title: Dark theme (CSS only, local preference cookie/localStorage)
   type: feature
-  status: planned
+  status: wont_do
   priority: 14
   refined: true
   estimate: 1d
