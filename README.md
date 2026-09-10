@@ -41,7 +41,7 @@ Stable, workable cut for real use. Feature freeze to **bugfixes only** after the
 ./start.sh
 ```
 
-Windows: `scripts/start.ps1`
+Windows: `.\start.ps1`
 
 Checks Docker, runs `compose up --build -d`, prints http://localhost:8000. Open in VS Code → run start script. No extra config.
 
