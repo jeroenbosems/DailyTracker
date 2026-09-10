@@ -1,3 +1,9 @@
+## 2026-09-10 — G2 Wear equip columns
+
+**Decision:** `users.equipped_*` columns; one-click `/shop/wear`; first unlock of a kind auto-equips; apply via Jinja globals + `data-theme` / CSS classes. No Settings theme UI.
+**Why:** GAMIFY_LEAN G2 under Tester hard constraints.
+**Affects:** models; database migrate; shop; base/today templates; style.css
+
 ## 2026-09-10 — Pivot: GW2-style cosmetics + lean UX (v1.2)
 
 **Decision:** Kill IRL break/snack shop fantasy. Points buy **fixed cosmetic / title / badge-frame / Today-flair SKUs**. Equip via one-click Wear (columns on `users`). Lean create: template or LLM paste → Today; full Epic form behind Advanced. Stop backlog polish (BL-024 closed). Architecture: `docs/GAMIFY_LEAN.md`. Branch `feat/v1.2-gamify-lean`.

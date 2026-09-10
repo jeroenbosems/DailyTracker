@@ -1,12 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"
+  data-theme="{% if user is defined and user and theme_payload_for_user(user) %}{{ theme_payload_for_user(user) }}{% else %}dark{% endif %}"
+>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{% block title %}Daily Tracker{% endblock %}</title>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
-<body>
+<body class="{% if user is defined and user and flair_class_for_user(user) %}{{ flair_class_for_user(user) }}{% endif %}">
   <div class="wrap">
     {% block body %}{% endblock %}
   </div>

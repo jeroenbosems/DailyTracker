@@ -14,8 +14,8 @@
         <a href="/import">Import</a>
         <a href="/settings">Settings</a>
       </nav>
-      <a class="points" href="/shop">{{ user.total_points }} pts</a>
-      <span class="muted">{{ user.username }}</span>
+      <a class="points {{ frame_class_for_user(user) }}" href="/shop">{{ user.total_points }} pts</a>
+      <span class="muted">{{ user.username }}{% if title_label_for_user(user) %} · {{ title_label_for_user(user) }}{% endif %}</span>
       <form method="post" action="/logout"><button class="ghost" type="submit">Sign out</button></form>
     </div>
   </div>
@@ -65,7 +65,7 @@
     {% endfor %}
   </div>
 
-  <div class="card">
+  <div class="card {% if flair_class_for_user(user) %}today-flair {{ flair_class_for_user(user) }}{% endif %}">
     <h2>Active Epic</h2>
     {% if parked_count and parked_count > 0 %}
       <p class="muted parked-summary"><a href="/epics">Parked · {{ parked_count }}</a></p>

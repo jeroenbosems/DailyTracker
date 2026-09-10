@@ -55,6 +55,10 @@ def _migrate_schema() -> None:
         ("epics", "archived", "ALTER TABLE epics ADD COLUMN archived BOOLEAN DEFAULT 0"),
         ("routines", "last_skipped_on", "ALTER TABLE routines ADD COLUMN last_skipped_on DATE"),
         ("routines", "last_skip_reason", "ALTER TABLE routines ADD COLUMN last_skip_reason VARCHAR(255)"),
+        ("users", "equipped_theme", "ALTER TABLE users ADD COLUMN equipped_theme VARCHAR(32)"),
+        ("users", "equipped_title", "ALTER TABLE users ADD COLUMN equipped_title VARCHAR(32)"),
+        ("users", "equipped_badge_frame", "ALTER TABLE users ADD COLUMN equipped_badge_frame VARCHAR(32)"),
+        ("users", "equipped_today_flair", "ALTER TABLE users ADD COLUMN equipped_today_flair VARCHAR(32)"),
     ]
     with engine.begin() as conn:
         for table, column, ddl in alterations:

@@ -133,6 +133,12 @@ Must pass before promote `test` → `release`:
 3. Legacy IRL redemptions (if present) labeled retired in history
 4. R7.1: no shop card above Due now / Active Epic
 
+## v1.2 G2 (Wear equip)
+
+1. One-click POST `/shop/wear` with `catalog_id` only
+2. Equipped theme/title/frame/flair apply without Settings
+3. No multi-field equip form; no Settings cosmetics chrome
+
 ## How to report
 
 Pass / fail per ID. Separate **product gaps** (PO) from **defects** (Developer).
