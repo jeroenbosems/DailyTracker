@@ -94,3 +94,7 @@ After completion, explicit Start follow-on creates a linked refine/maintain Epic
 
 Settings JSON export/restore (merge or replace-with-confirm). No cloud sync.
 
+
+## Keyboard shortcuts (Today)
+
+Optional Today shortcuts: **c** = complete next Step, **r** = weekly review. Shown in the Today footer; ignored while typing in fields.

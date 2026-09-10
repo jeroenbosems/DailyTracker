@@ -110,8 +110,8 @@
               <div class="meta">Next Step</div>
               <h3><span class="prio p{{ next_step.priority }}">P{{ next_step.priority }}</span>{{ next_step.title }}</h3>
             </div>
-            <form method="post" action="/steps/{{ next_step.id }}/complete">
-              <button class="primary" type="submit">Complete Step</button>
+            <form id="shortcut-complete-next-step" method="post" action="/steps/{{ next_step.id }}/complete">
+              <button class="primary" type="submit">Complete Step <kbd class="kbd">c</kbd></button>
             </form>
           </div>
         {% elif next_step_filtered_out %}
@@ -332,7 +332,15 @@
     </div>
   </div>
 
-  <p class="muted" style="margin:1.5rem 0 0.5rem;text-align:center">
-    <a href="/review">Weekly review</a>
-  </p>
+  <footer class="page-footer shortcuts-footer" aria-label="Keyboard shortcuts">
+    <p class="muted" style="margin:0 0 0.35rem;text-align:center">
+      <a href="/review">Weekly review</a>
+    </p>
+    <p class="muted shortcuts-legend" style="margin:0;text-align:center;font-size:0.85rem">
+      Shortcuts (Today · ignored while typing):
+      <kbd class="kbd">c</kbd> complete next Step ·
+      <kbd class="kbd">r</kbd> open review
+    </p>
+  </footer>
+  <script src="/static/today-shortcuts.js" defer></script>
 {% endblock %}

@@ -111,7 +111,7 @@ Must pass before promote `test` → `release`:
 
 ## v1.1 (shipped — core BL-020/021/031)
 
-Core slices shipped to main. Stretch BL-023 optional.
+Core slices shipped to main.
 
 1. **BL-020 Search** — `/search` title substring across Tasks/Routines/Epics/Steps; results link out; **does not** reorder Today (R7.1)
 2. **BL-021 Soft archive** — hide/restore Epics; never wipe progress (later PR)
@@ -119,6 +119,19 @@ Core slices shipped to main. Stretch BL-023 optional.
 
 Out: dual Active, heat-map, DIY/cloud/multi-user.
 
+## v1.2 (in progress)
+
+Must pass before promote `test` → `release`:
+
+1. **BL-023 Keyboard shortcuts (Today)** — `c` completes next Step; `r` opens `/review`; ignored while typing; legend in Today footer
+2. Further planned backlog items as locked by PO
+
 ## How to report
 
 Pass / fail per ID. Separate **product gaps** (PO) from **defects** (Developer).
+
+## BL-023 Keyboard shortcuts (Today)
+
+- On `/today`, `c` completes the Active Epic next Step (same as Complete Step); `r` navigates to `/review`.
+- Shortcuts do not fire while focus is in an input, textarea, select, or contenteditable.
+- Legend is visible in the Today page footer (optional, discoverable).
