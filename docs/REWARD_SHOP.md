@@ -1,44 +1,39 @@
-# Reward shop — fixed catalog
+# Cosmetic shop — fixed catalog
 
-**Status:** normative for v0.5  
-**Tone:** adult productivity — real breaks and treats earned by useful work, not a DIY game economy.
+**Status:** normative for v1.2 gamify-lean (G1+)  
+**Tone:** GW2-style titles / themes / frames / flair. Points buy how the app looks — not IRL breaks.
+
+See also: `docs/GAMIFY_LEAN.md`.
 
 ## Principles
 
-1. **Fixed catalog only** — prices and items are a code constant. No user-defined rewards or prices (see R3.4).
+1. **Fixed catalog only** — prices and items are a code constant. No user-defined rewards or prices.
 2. **Earn then spend** — points come from Priority rewards and Period bonuses; the shop only spends.
-3. **Today stays focused** — Shop lives on `/shop`. Today’s point balance links to the shop; there is **no** shop section above Due now / Active Epic (R7.1).
-4. **IRL follow-through** — redeeming spends points; “Done in real life” is a separate toggle when you actually take the break or treat.
+3. **Today stays focused** — Shop lives on `/shop`. No shop section above Due now / Active Epic (R7.1).
+4. **No IRL fulfill** — unlocks are cosmetics/titles. `fulfilled_irl` is unused in UI (schema kept for export compat).
+5. **Wear (G2)** — equip is a one-click button, not a multi-field form.
 
 ## Catalog
 
-| `catalog_id` | Label | Cost (pts) |
-|--------------|-------|------------:|
-| `break_15` | Short break (15 min) | 40 |
-| `snack` | Favorite drink / snack | 80 |
-| `media_ep` | Guilt-free media episode | 100 |
-| `hobby_hour` | Hobby hour | 150 |
-| `meal_out` | Nice meal out / takeaway | 300 |
-| `half_day` | Half-day off project | 500 |
+| `catalog_id` | kind | Label | Cost |
+|--------------|------|-------|-----:|
+| `frame_bronze` | badge_frame | Bronze badge frame | 60 |
+| `theme_aurora` | theme | Aurora theme | 80 |
+| `flair_spark` | today_flair | Today spark flair | 90 |
+| `title_pathfinder` | title | Title: Pathfinder | 100 |
+| `theme_ember` | theme | Ember theme | 120 |
+| `frame_silver` | badge_frame | Silver badge frame | 140 |
+| `title_steady` | title | Title: Steady Hand | 150 |
+| `title_finisher` | title | Title: Finisher | 250 |
 
-## Data
-
-**`redemptions`**
-
-| Field | Meaning |
-|-------|---------|
-| `user_id` | Owner |
-| `catalog_id` | Key from the table above |
-| `points_spent` | Cost at redeem time |
-| `created_at` | When redeemed |
-| `fulfilled_irl` | User marked the reward taken in real life |
+Retired IRL ids (history only): `break_15`, `snack`, `media_ep`, `hobby_hour`, `meal_out`, `half_day`.
 
 ## Redeem rules
 
-1. If `user.total_points < cost` → **HTTP 400** with a clear “not enough points” message. No row written; balance unchanged.
-2. Else subtract `cost` from `total_points`, insert a `redemptions` row (`fulfilled_irl=false`).
-3. Optional `RewardLog` on spend is not required — spend is not an earn event.
+1. If `user.total_points < cost` → **HTTP 400**. No row written; balance unchanged.
+2. Else subtract `cost`, insert `redemptions` row.
+3. Unknown / DIY ids → rejected.
 
 ## Out of scope
 
-RNG loot, user-defined rewards/prices, shop chrome on the Today board above Due now / Active Epic.
+IRL vouchers, DIY catalog, RNG loot, Settings theme pages, form sprawl on Wear.
