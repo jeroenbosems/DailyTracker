@@ -2,6 +2,12 @@
 
 Append-only. Newest first. Chat opinions do not count until recorded here and reflected in REQUIREMENTS.md / PRODUCT.md.
 
+## 2026-09-10 — BL-023 Today keyboard shortcuts
+
+**Decision:** On Today only: `c` submits the next-Step complete form; `r` goes to `/review`. Legend in Today footer; ignore when focus is in form fields. No chords — keep optional and conflict-free with typing.
+**Why:** 1.2 first backlog item (was stretch); PO ordered start after Mac Start here.
+**Affects:** today.html; static/today-shortcuts.js; ACCEPTANCE/PRODUCT
+
 ## 2026-09-10 — Mac-clear Start here
 
 **Decision:** README Start here calls out **Mac / Linux** vs **Windows** explicitly; Mac tip points at Docker Desktop for Mac + whale-idle before `./start.sh`.

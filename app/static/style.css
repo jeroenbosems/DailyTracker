@@ -175,3 +175,17 @@ a.btn.ghost:hover { text-decoration: none; border-color: var(--accent); }
 }
 .life-modes-field legend { padding: 0 0.35rem; color: var(--accent); font-weight: 600; }
 .life-modes-checks { display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; }
+
+.kbd {
+  display: inline-block;
+  padding: 0.05rem 0.35rem;
+  border: 1px solid #3a4f6a;
+  border-radius: 4px;
+  background: #152033;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78em;
+  color: var(--muted);
+  vertical-align: baseline;
+}
+.page-footer { margin: 1.5rem 0 0.5rem; }
+.shortcuts-legend .kbd { margin: 0 0.1rem; }
