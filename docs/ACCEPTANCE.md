@@ -126,6 +126,13 @@ Must pass before promote `test` → `release`:
 1. **BL-023 Keyboard shortcuts (Today)** — `c` completes next Step; `r` opens `/review`; ignored while typing; legend in Today footer
 2. Further planned backlog items as locked by PO
 
+## v1.2 G1 (cosmetic shop catalog)
+
+1. `/shop` lists only cosmetic/title SKUs; no IRL items; no “Done in real life”
+2. Unlock spends points; unknown/DIY ids rejected
+3. Legacy IRL redemptions (if present) labeled retired in history
+4. R7.1: no shop card above Due now / Active Epic
+
 ## How to report
 
 Pass / fail per ID. Separate **product gaps** (PO) from **defects** (Developer).
