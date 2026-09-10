@@ -1,17 +1,21 @@
 #!/usr/bin/env bash
-# Daily Tracker one-command start (v0.5.1)
+# Daily Tracker — one-command Docker start
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+echo "Daily Tracker — starting with Docker…"
+
 if ! command -v docker >/dev/null 2>&1; then
-  echo "Error: Docker is not installed (or not on PATH). Install Docker Desktop / Engine, then re-run ./scripts/start.sh" >&2
+  echo "Error: Docker is not installed (or not on PATH)." >&2
+  echo "Install Docker Desktop (or Engine), then run: ./start.sh" >&2
   exit 1
 fi
 
 if ! docker info >/dev/null 2>&1; then
-  echo "Error: Docker is installed but not running. Start Docker, then re-run ./scripts/start.sh" >&2
+  echo "Error: Docker is installed but not running." >&2
+  echo "Start Docker Desktop, wait until it is ready, then run: ./start.sh" >&2
   exit 1
 fi
 
@@ -24,5 +28,34 @@ else
   exit 1
 fi
 
+echo "Building and starting container (first run may take a minute)…"
 "${COMPOSE[@]}" up --build -d
-echo "Daily Tracker is starting. Open http://localhost:8000"
+
+echo "Waiting for http://localhost:8000 …"
+ready=0
+for i in $(seq 1 60); do
+  if curl -sf -o /dev/null http://127.0.0.1:8000/login 2>/dev/null \
+    || curl -sf -o /dev/null http://127.0.0.1:8000/ 2>/dev/null; then
+    ready=1
+    break
+  fi
+  # fallback: container running even if curl missing
+  if ! command -v curl >/dev/null 2>&1; then
+    if "${COMPOSE[@]}" ps --status running 2>/dev/null | grep -q dailytracker; then
+      sleep 2
+      ready=1
+      break
+    fi
+  fi
+  sleep 1
+done
+
+"${COMPOSE[@]}" ps || true
+echo ""
+if [[ "$ready" -eq 1 ]]; then
+  echo "Ready. Open http://localhost:8000"
+else
+  echo "Container is up (or still starting). Open http://localhost:8000"
+  echo "If the page does not load, run: docker compose logs -f"
+fi
+echo "Stop later with: ./scripts/stop.sh   (or: docker compose down)"
