@@ -2,16 +2,22 @@
 
 ## Start here (one action)
 
-**Requires Docker Desktop (or Engine) running.**
+**Mac / Linux** (Docker Desktop or Engine must be running):
 
 ```bash
 ./start.sh
 ```
 
+**Windows:**
+
+```powershell
+.\start.ps1
+```
+
 That builds the image, starts the container, and prints **http://localhost:8000**. First visit creates your local account.
 
-- Windows: `.\start.ps1` (or `scripts\start.ps1`)
-- Same script also at `./start.sh`
+**Mac tip:** install [Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/), open it, wait until the whale icon is idle, then run `./start.sh` from the repo root in Terminal (or VS Code).
+
 - VS Code: Terminal → Run Build Task → **Start Daily Tracker (Docker)**
 - Stop: `./scripts/stop.sh` or `docker compose down`
 
@@ -41,7 +47,7 @@ Stable, workable cut for real use. Feature freeze to **bugfixes only** after the
 ./start.sh
 ```
 
-Windows: `.\start.ps1`
+Mac / Linux: `./start.sh` · Windows: `.\start.ps1`
 
 Checks Docker, runs `compose up --build -d`, prints http://localhost:8000. Open in VS Code → run start script. No extra config.
 
