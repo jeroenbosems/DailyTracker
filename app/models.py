@@ -21,6 +21,10 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     total_points: Mapped[int] = mapped_column(Integer, default=0)
     active_epic_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    equipped_theme: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    equipped_title: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    equipped_badge_frame: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    equipped_today_flair: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
     tasks: Mapped[list[Task]] = relationship(back_populates="user", cascade="all, delete-orphan")
     routines: Mapped[list[Routine]] = relationship(back_populates="user", cascade="all, delete-orphan")

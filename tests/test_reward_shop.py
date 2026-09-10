@@ -19,6 +19,7 @@ from app.shop import (
     catalog_items,
     history_label,
     redeem,
+    wear,
 )
 
 
@@ -206,6 +207,22 @@ def test_http_shop_unlock_no_irl(tmp_path, monkeypatch):
         assert "Done in real life" not in shop.text
         assert "break_15" not in shop.text
         assert "Aurora theme" in shop.text
+        assert "Wear" in shop.text
+
+        worn = client.post(
+            "/shop/wear",
+            data={"catalog_id": "theme_aurora"},
+            follow_redirects=False,
+        )
+        assert worn.status_code == 303
+
+        # Wear locked item → 400
+        locked = client.post(
+            "/shop/wear",
+            data={"catalog_id": "title_finisher"},
+            follow_redirects=False,
+        )
+        assert locked.status_code == 400
 
         today = client.get("/today")
         assert today.status_code == 200
@@ -227,12 +244,24 @@ def test_shop_template_afford_need_copy():
         loader=FileSystemLoader(str(Path("app/templates"))),
         autoescape=select_autoescape(["html"]),
     )
+    env.globals["title_label_for_user"] = lambda u: None
+    env.globals["theme_payload_for_user"] = lambda u: None
+    env.globals["frame_class_for_user"] = lambda u: ""
+    env.globals["flair_class_for_user"] = lambda u: ""
     tmpl = env.get_template("shop.html")
-    user = SimpleNamespace(total_points=70, username="u")
+    user = SimpleNamespace(
+        total_points=70,
+        username="u",
+        equipped_theme=None,
+        equipped_title=None,
+        equipped_badge_frame=None,
+        equipped_today_flair=None,
+    )
     html = tmpl.render(
         request=SimpleNamespace(),
         user=user,
         catalog=catalog_items(),
+        owned=set(),
         history=[],
         flash=None,
     )
@@ -241,3 +270,54 @@ def test_shop_template_afford_need_copy():
     assert "Need 20 more" in html  # flair_spark 90 - 70
     assert "Done in real life" not in html
     assert "Unlock" in html
+
+
+
+def test_wear_requires_unlock_and_sets_column():
+    db = _session()
+    user = _user(db, points=200)
+    with pytest.raises(ShopError):
+        wear(db, user, "theme_aurora")
+    redeem(db, user, "theme_aurora")
+    db.commit()
+    assert user.equipped_theme == "theme_aurora"  # auto-equip first of kind
+    redeem(db, user, "theme_ember")
+    db.commit()
+    # second theme does not steal equip until Wear
+    assert user.equipped_theme == "theme_aurora"
+    wear(db, user, "theme_ember")
+    db.commit()
+    assert user.equipped_theme == "theme_ember"
+
+
+def test_shop_template_has_wear_not_irl():
+    from jinja2 import Environment, FileSystemLoader, select_autoescape
+    from types import SimpleNamespace
+
+    env = Environment(
+        loader=FileSystemLoader(str(Path("app/templates"))),
+        autoescape=select_autoescape(["html"]),
+    )
+    env.globals["title_label_for_user"] = lambda u: None
+    env.globals["theme_payload_for_user"] = lambda u: None
+    env.globals["frame_class_for_user"] = lambda u: ""
+    env.globals["flair_class_for_user"] = lambda u: ""
+    tmpl = env.get_template("shop.html")
+    user = SimpleNamespace(
+        total_points=500,
+        username="u",
+        equipped_theme=None,
+        equipped_title=None,
+        equipped_badge_frame=None,
+        equipped_today_flair=None,
+    )
+    html = tmpl.render(
+        request=SimpleNamespace(),
+        user=user,
+        catalog=catalog_items(),
+        owned={"theme_aurora"},
+        history=[],
+        flash=None,
+    )
+    assert "Wear" in html
+    assert "Done in real life" not in html

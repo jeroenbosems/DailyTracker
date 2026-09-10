@@ -14,8 +14,8 @@
         <a href="/import">Import</a>
         <a href="/settings">Settings</a>
       </nav>
-      <a class="points" href="/shop">{{ user.total_points }} pts</a>
-      <span class="muted">{{ user.username }}</span>
+      <a class="points {{ frame_class_for_user(user) }}" href="/shop">{{ user.total_points }} pts</a>
+      <span class="muted">{{ user.username }}{% if title_label_for_user(user) %} · {{ title_label_for_user(user) }}{% endif %}</span>
       <form method="post" action="/logout"><button class="ghost" type="submit">Sign out</button></form>
     </div>
   </div>
