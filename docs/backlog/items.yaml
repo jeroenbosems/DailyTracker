@@ -82,7 +82,7 @@ items:
 - id: BL-023
   title: Keyboard shortcuts on Today (complete next Step, open review)
   type: feature
-  status: committed
+  status: done
   priority: 13
   refined: true
   estimate: 1d
@@ -93,7 +93,7 @@ items:
 - id: BL-024
   title: Dark theme (CSS only, local preference cookie/localStorage)
   type: feature
-  status: planned
+  status: committed
   priority: 14
   refined: true
   estimate: 1d

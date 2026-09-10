@@ -124,7 +124,8 @@ Out: dual Active, heat-map, DIY/cloud/multi-user.
 Must pass before promote `test` → `release`:
 
 1. **BL-023 Keyboard shortcuts (Today)** — `c` completes next Step; `r` opens `/review`; ignored while typing; legend in Today footer
-2. Further planned backlog items as locked by PO
+2. **BL-024 Theme** — Settings toggle; dark default; light CSS; persists in localStorage; no backend tables
+3. Further planned backlog items as locked by PO
 
 ## How to report
 
@@ -135,3 +136,9 @@ Pass / fail per ID. Separate **product gaps** (PO) from **defects** (Developer).
 - On `/today`, `c` completes the Active Epic next Step (same as Complete Step); `r` navigates to `/review`.
 - Shortcuts do not fire while focus is in an input, textarea, select, or contenteditable.
 - Legend is visible in the Today page footer (optional, discoverable).
+
+## BL-024 Theme (dark / light)
+
+- Settings Appearance toggle switches `data-theme` between dark (default) and light.
+- Preference persists in `localStorage` (`dt-theme`); no new DB tables.
+- Applied before first paint to avoid flash.

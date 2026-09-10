@@ -98,3 +98,7 @@ Settings JSON export/restore (merge or replace-with-confirm). No cloud sync.
 ## Keyboard shortcuts (Today)
 
 Optional Today shortcuts: **c** = complete next Step, **r** = weekly review. Shown in the Today footer; ignored while typing in fields.
+
+## Appearance (theme)
+
+Dark is the default. Settings → Appearance toggles a CSS-only light theme; preference is per-browser (`localStorage`).

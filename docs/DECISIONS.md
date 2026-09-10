@@ -1,3 +1,9 @@
+## 2026-09-10 — BL-024 theme toggle (CSS + localStorage)
+
+**Decision:** Keep existing dark palette as default `data-theme="dark"`. Add CSS-only light theme. Settings Appearance toggle persists via `localStorage` key `dt-theme` (no backend tables). Apply before paint in base.html.
+**Why:** 1.2 next planned item after BL-023.
+**Affects:** base.html; style.css; theme.js; settings.html
+
 # Decision log
 
 Append-only. Newest first. Chat opinions do not count until recorded here and reflected in REQUIREMENTS.md / PRODUCT.md.

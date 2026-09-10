@@ -24,6 +24,15 @@
   {% if error %}<div class="flash" style="border-color:#c44">{{ error }}</div>{% endif %}
 
   <div class="card">
+    <h2>Appearance</h2>
+    <p class="muted">Theme stays in this browser only (localStorage). Default is dark.</p>
+    <p style="margin-top:0.5rem">Current: <strong data-theme-label>Dark</strong></p>
+    <p style="margin-top:0.75rem">
+      <button type="button" class="primary" data-theme-toggle>Use light theme</button>
+    </p>
+  </div>
+
+  <div class="card">
     <h2>Export &amp; backup</h2>
     <p class="muted">Download your data as JSON (no password hashes or session secrets). Local only — no cloud sync.</p>
     <p style="margin-top:0.75rem">

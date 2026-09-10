@@ -189,3 +189,37 @@ a.btn.ghost:hover { text-decoration: none; border-color: var(--accent); }
 }
 .page-footer { margin: 1.5rem 0 0.5rem; }
 .shortcuts-legend .kbd { margin: 0 0.1rem; }
+
+/* BL-024 — light theme (default remains dark via data-theme="dark") */
+html[data-theme="light"] {
+  --bg: #f4f6fa;
+  --panel: #ffffff;
+  --panel-2: #eef2f8;
+  --text: #1a2332;
+  --muted: #5a6b82;
+  --accent: #2b6cb0;
+  --accent-2: #1e4e8c;
+  --good: #1f9d61;
+  --warn: #b8860b;
+  --bad: #c0392b;
+  --gold: #b8860b;
+  --silver: #6b7280;
+  --bronze: #9a6b3f;
+}
+html[data-theme="light"] body {
+  background: radial-gradient(1200px 600px at 10% -10%, #dce6f5, var(--bg));
+  color: var(--text);
+}
+html[data-theme="light"] .card,
+html[data-theme="light"] .points {
+  border-color: #cfd8e6;
+}
+html[data-theme="light"] .item { background: var(--panel-2); }
+html[data-theme="light"] .kbd {
+  background: #e8eef7;
+  border-color: #c5d0e0;
+  color: var(--muted);
+}
+html[data-theme="light"] .p1 { background: #fde8e8; color: #9b1c1c; }
+html[data-theme="light"] .p2 { background: #fef3c7; color: #92400e; }
+html[data-theme="light"] .p3 { background: #e0f2fe; color: #075985; }

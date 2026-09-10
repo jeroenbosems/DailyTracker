@@ -4,11 +4,23 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{% block title %}Daily Tracker{% endblock %}</title>
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("dt-theme");
+        if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+        else document.documentElement.setAttribute("data-theme", "dark");
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
   <div class="wrap">
     {% block body %}{% endblock %}
   </div>
+  <script src="/static/theme.js" defer></script>
 </body>
 </html>
