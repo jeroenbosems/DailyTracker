@@ -82,7 +82,7 @@ items:
 - id: BL-023
   title: Keyboard shortcuts on Today (complete next Step, open review)
   type: feature
-  status: planned
+  status: committed
   priority: 13
   refined: true
   estimate: 1d
