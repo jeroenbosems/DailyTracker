@@ -2,6 +2,12 @@
 
 Append-only. Newest first. Chat opinions do not count until recorded here and reflected in REQUIREMENTS.md / PRODUCT.md.
 
+## 2026-09-10 — One-action Docker start at repo root
+
+**Decision:** Add root `./start.sh` / `./start.ps1` wrappers, wait-for-ready messaging, `scripts/stop.sh`, compose healthcheck, and VS Code build task. README leads with **Start here**.
+**Why:** Client could not see a single obvious action to spin up Docker.
+**Affects:** README; start scripts; docker-compose healthcheck
+
 ## 2026-09-09 — v1.1 reopen (Search → soft archive → routine skip)
 
 **Decision:** Client reopened after v1.0-rc freeze for 1.1: BL-020 Search, BL-021 Soft archive, BL-031 Routine skip (stretch BL-023). Out: dual Active, heat-map, DIY/cloud/multi-user.

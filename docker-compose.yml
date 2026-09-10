@@ -7,9 +7,13 @@ services:
       - dailytracker_data:/data
     environment:
       - DATA_DIR=/data
-      # Optional: set SESSION_SECRET for stable sessions across restarts
-      # - SESSION_SECRET=change-me
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/login')"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
 
 volumes:
   dailytracker_data:
