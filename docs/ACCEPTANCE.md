@@ -139,6 +139,12 @@ Must pass before promote `test` → `release`:
 2. Equipped theme/title/frame/flair apply without Settings
 3. No multi-field equip form; no Settings cosmetics chrome
 
+## v1.2 G3 (toasts)
+
+1. Flash messages auto-dismiss as toasts (no modal)
+2. Title unlock flash uses “Title unlocked: …”
+3. Toasts never reorder Today sections (R7.1)
+
 ## How to report
 
 Pass / fail per ID. Separate **product gaps** (PO) from **defects** (Developer).

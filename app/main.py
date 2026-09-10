@@ -68,6 +68,7 @@ from app.shop import (
     catalog_items,
     flair_class_for_user,
     frame_class_for_user,
+    get_catalog_item,
     history_label,
     is_legacy_irl,
     redeem,
@@ -1559,8 +1560,13 @@ def shop_redeem(
     try:
         row = redeem(db, user, catalog_id)
         db.commit()
-        label = history_label(row.catalog_id)
-        return _flash_redirect("/shop", f"Unlocked: {label} (−{row.points_spent} pts)")
+        item = get_catalog_item(row.catalog_id)
+        if item and item.kind == "title":
+            msg = f"Title unlocked: {item.unlock_payload} (−{row.points_spent} pts)"
+        else:
+            label = history_label(row.catalog_id)
+            msg = f"Unlocked: {label} (−{row.points_spent} pts)"
+        return _flash_redirect("/shop", msg)
     except ShopError as exc:
         db.rollback()
         raise HTTPException(status_code=400, detail=exc.message) from None
