@@ -1,3 +1,9 @@
+## 2026-09-10 — Pivot: GW2-style cosmetics + lean UX (v1.2)
+
+**Decision:** Kill IRL break/snack shop fantasy. Points buy **fixed cosmetic / title / badge-frame / Today-flair SKUs**. Equip via one-click Wear (columns on `users`). Lean create: template or LLM paste → Today; full Epic form behind Advanced. Stop backlog polish (BL-024 closed). Architecture: `docs/GAMIFY_LEAN.md`. Branch `feat/v1.2-gamify-lean`.
+**Why:** Client/PO: fun gamification + extremely lean UX; IRL vouchers felt like admin software.
+**Affects:** shop.py; REWARD_SHOP; PRODUCT; Today/Epics empty CTAs; users equip columns; supersedes BL-024 Settings theme PR
+
 # Decision log
 
 Append-only. Newest first. Chat opinions do not count until recorded here and reflected in REQUIREMENTS.md / PRODUCT.md.
