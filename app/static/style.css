@@ -209,3 +209,20 @@ html[data-theme="ember"] body {
   border-color: var(--accent);
   box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
 }
+
+/* G3 celebration toasts */
+.flash.toast {
+  position: sticky;
+  top: 0.75rem;
+  z-index: 20;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  border-color: var(--accent);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.flash.toast.toast-out {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+.flash.toast-celebrate {
+  border-color: var(--good);
+}
